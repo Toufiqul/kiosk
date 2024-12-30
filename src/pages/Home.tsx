@@ -12,7 +12,7 @@ function Home() {
       <header className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">MIST COMPASS</h1>
         <img
-          src="/path-to-your-logo/mist-logo.png"
+          src="https://afd.gov.bd/sites/default/files/inline-images/MIST%20Logo_0.png"
           alt="MIST Logo"
           className="w-32 mx-auto"
         />
