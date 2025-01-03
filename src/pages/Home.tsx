@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { supabase } from "../client.js";
 function Home() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  console.log(supabase);
   const closeModal = () => setActiveModal(null);
+  const handleLogin = async (type: string) => {
+    console.log(type);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -93,7 +97,7 @@ function Home() {
             />
             <button
               className="w-full px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mb-2"
-              onClick={() => alert("Admin Login!")}
+              onClick={() => handleLogin("admin")}
             >
               Login
             </button>
@@ -131,7 +135,7 @@ function Home() {
             />
             <button
               className="w-full px-4 py-2 text-white bg-purple-500 rounded hover:bg-purple-600 mb-2"
-              onClick={() => alert("Student Login!")}
+              onClick={() => handleLogin("student")}
             >
               Login
             </button>
@@ -164,7 +168,7 @@ function Home() {
             />
             <button
               className="w-full px-4 py-2 text-white bg-yellow-500 rounded hover:bg-yellow-600 mb-2"
-              onClick={() => alert("Guardian Login!")}
+              onClick={() => handleLogin("guardian")}
             >
               Login
             </button>
