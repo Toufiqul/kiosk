@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../client.js";
 function Home() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -7,6 +8,32 @@ function Home() {
   const closeModal = () => setActiveModal(null);
   const handleLogin = async (type: string) => {
     console.log(type);
+  };
+  const sign = async () => {
+    // console.log(supabase);
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
+      {
+        email: "fahim.prime@gmail.com",
+        password: "example-password",
+      }
+    );
+
+    if (signUpError) {
+      console.log(signUpError);
+      return;
+    }
+    console.log("sign up data:", signUpData);
+
+    const { data, error } = await supabase
+      .from("users") // Replace 'users' with your table name
+      .insert([
+        {
+          id: signUpData.user.id,
+          email: signUpData.user.email,
+          role: "admin",
+        }, // Object with column names as keys
+      ]);
+    console.log(data || error);
   };
 
   return (
@@ -146,7 +173,7 @@ function Home() {
           </div>
         </div>
       )}
-
+      <button onClick={sign}>signUp</button>
       {/* Guardian Modal */}
       {activeModal === "guardian" && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
