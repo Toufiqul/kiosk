@@ -19,32 +19,52 @@ function Home() {
           className="w-64 mx-auto"
         />
       </header>
-      <main>
-        <div className="space-x-6">
-          <button
-            className="px-6 py-3 text-lg text-white bg-blue-500 rounded hover:bg-blue-600"
-            onClick={() => setActiveModal("admin")}
-          >
-            Admin
-          </button>
-          <button
-            className="px-6 py-3 text-lg text-white bg-green-500 rounded hover:bg-green-600"
-            onClick={() => navigate("/dashboard")}
-          >
-            Guest
-          </button>
-          <button
-            className="px-6 py-3 text-lg text-white bg-purple-500 rounded hover:bg-purple-600"
+      <main className="flex flex-1 items-center justify-center">
+        <div className="grid grid-cols-2 gap-4">
+          <div
+            className="flex flex-col items-center justify-center p-4 bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 cursor-pointer"
             onClick={() => setActiveModal("student")}
           >
-            Student
-          </button>
-          {/* <button
-            className="px-6 py-3 text-white bg-yellow-500 rounded hover:bg-yellow-600"
+            <img
+              src="src/assets/icon_student.png" // Replace with your PNG icon path
+              alt="Admin Icon"
+              className="w-16 h-16 mb-2"
+            />
+            <p className="text-white font-semibold">Student Login</p>
+          </div>
+          <div
+            className="flex flex-col items-center justify-center p-4 bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 cursor-pointer"
+            onClick={() => setActiveModal("admin")}
+          >
+            <img
+              src="src/assets/icon_admin.png" // Replace with your PNG icon path
+              alt="Admin Icon"
+              className="w-16 h-16 mb-2"
+            />
+            <p className="text-white font-semibold">Admin Login</p>
+          </div>
+          <div
+            className="flex flex-col items-center justify-center p-4 bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 cursor-pointer"
             onClick={() => setActiveModal("guardian")}
           >
-            Guardian Login
-          </button> */}
+            <img
+              src="src/assets/icon_guardian.png" // Replace with your PNG icon path
+              alt="Admin Icon"
+              className="w-16 h-16 mb-2"
+            />
+            <p className="text-white font-semibold">Guardian Login</p>
+          </div>
+          <div
+            className="flex flex-col items-center justify-center p-4 bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 cursor-pointer"
+            onClick={() => navigate("/guest-access")}
+          >
+            <img
+              src="src/assets/icon_guest.png" // Replace with your PNG icon path
+              alt="Admin Icon"
+              className="w-16 h-16 mb-2"
+            />
+            <p className="text-white font-semibold">Guest Access</p>
+          </div>
         </div>
       </main>
 
