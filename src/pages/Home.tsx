@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../client.js";
 function Home() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  console.log(supabase);
   const closeModal = () => setActiveModal(null);
   const handleLogin = async (type: string) => {
     console.log(type);
