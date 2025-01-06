@@ -12,61 +12,41 @@ function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">MIST COMPASS</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <header className="mb-8 text-center">
+        <h1 className="text-4xl font-bold  text-gray-800 mb-4">MIST COMPASS</h1>
         <img
           src="https://afd.gov.bd/sites/default/files/inline-images/MIST%20Logo_0.png"
           alt="MIST Logo"
-          className="w-32 mx-auto"
+          className="w-64 mx-auto"
         />
-      </div>
-      <main className="flex flex-1 items-center justify-center">
-        <div className="grid grid-cols-2 gap-4">
-          <div
-            className="flex flex-col items-center justify-center p-4 bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 cursor-pointer"
-            onClick={() => setActiveModal("student")}
-          >
-            <img
-              src="src/assets/icon_student.png" // Replace with your PNG icon path
-              alt="Admin Icon"
-              className="w-16 h-16 mb-2"
-            />
-            <p className="text-white font-semibold">Student Login</p>
-          </div>
-          <div
-            className="flex flex-col items-center justify-center p-4 bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 cursor-pointer"
+      </header>
+      <main>
+        <div className="space-x-6">
+          <button
+            className="px-6 py-3 text-lg text-white bg-blue-500 rounded hover:bg-blue-600"
             onClick={() => setActiveModal("admin")}
           >
-            <img
-              src="src/assets/icon_admin.png" // Replace with your PNG icon path
-              alt="Admin Icon"
-              className="w-16 h-16 mb-2"
-            />
-            <p className="text-white font-semibold">Admin Login</p>
-          </div>
-          <div
-            className="flex flex-col items-center justify-center p-4 bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 cursor-pointer"
+            Admin
+          </button>
+          <button
+            className="px-6 py-3 text-lg text-white bg-green-500 rounded hover:bg-green-600"
+            onClick={() => navigate("/dashboard")}
+          >
+            Guest
+          </button>
+          <button
+            className="px-6 py-3 text-lg text-white bg-purple-500 rounded hover:bg-purple-600"
+            onClick={() => setActiveModal("student")}
+          >
+            Student
+          </button>
+          {/* <button
+            className="px-6 py-3 text-white bg-yellow-500 rounded hover:bg-yellow-600"
             onClick={() => setActiveModal("guardian")}
           >
-            <img
-              src="src/assets/icon_guardian.png" // Replace with your PNG icon path
-              alt="Admin Icon"
-              className="w-16 h-16 mb-2"
-            />
-            <p className="text-white font-semibold">Guardian Login</p>
-          </div>
-          <div
-            className="flex flex-col items-center justify-center p-4 bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 cursor-pointer"
-            onClick={() => navigate("/guest-access")}
-          >
-            <img
-              src="src/assets/icon_guest.png" // Replace with your PNG icon path
-              alt="Admin Icon"
-              className="w-16 h-16 mb-2"
-            />
-            <p className="text-white font-semibold">Guest Access</p>
-          </div>
+            Guardian Login
+          </button> */}
         </div>
       </main>
 
