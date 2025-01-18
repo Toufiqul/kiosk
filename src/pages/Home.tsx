@@ -11,7 +11,7 @@ function Home() {
     id: "",
     department: "",
     section: "",
-    role: "student"
+    role: "student",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,14 +27,16 @@ function Home() {
       id: "",
       department: "",
       section: "",
-      role: "student"
+      role: "student",
     });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -56,24 +58,25 @@ function Home() {
     }
 
     try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
 
       if (signUpError) throw signUpError;
 
       if (signUpData && signUpData.user) {
-        const { error: insertError } = await supabase
-          .from("users")
-          .insert([{
+        const { error: insertError } = await supabase.from("users").insert([
+          {
             id: signUpData.user.id,
             email: formData.email,
             student_id: formData.id,
             // department: formData.department,
             // section: formData.section,
-            role: formData.role
-          }]);
+            role: formData.role,
+          },
+        ]);
 
         if (insertError) throw insertError;
 
@@ -92,29 +95,7 @@ function Home() {
   };
   const sign = async () => {
     // console.log(supabase);
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
-      {
-        email: "fahim.prime@gmail.com",
-        password: "example-password",
-      }
-    );
-
-    if (signUpError) {
-      console.log(signUpError);
-      return;
-    }
-    console.log("sign up data:", signUpData);
-
-    const { data, error } = await supabase
-      .from("users") // Replace 'users' with your table name
-      .insert([
-        {
-          id: signUpData.user.id,
-          email: signUpData.user.email,
-          role: "admin",
-        }, // Object with column names as keys
-      ]);
-    console.log(data || error);
+    navigate("/admin");
   };
 
   return (
@@ -162,7 +143,7 @@ function Home() {
             />
             <p className="text-white font-semibold">Guest</p>
           </div>
-          <div 
+          <div
             onClick={() => setActiveModal("signup")}
             className="transform transition-all duration-300 hover:scale-105 cursor-pointer"
           >
@@ -266,7 +247,9 @@ function Home() {
               </h2>
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
                   <input
                     type="email"
                     name="email"
@@ -279,7 +262,9 @@ function Home() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Password</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
                   <input
                     type="password"
                     name="password"
@@ -292,7 +277,9 @@ function Home() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Confirm Password
+                  </label>
                   <input
                     type="password"
                     name="confirmPassword"
@@ -306,7 +293,9 @@ function Home() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">ID Number</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      ID Number
+                    </label>
                     <input
                       type="text"
                       name="id"
@@ -319,7 +308,9 @@ function Home() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Role</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Role
+                    </label>
                     <select
                       name="role"
                       value={formData.role}
