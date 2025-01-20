@@ -2,8 +2,10 @@ import React from "react";
 import { supabase } from "../client";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../state/auth";
+import { v4 as uuidv4 } from "uuid";
 
 function AdminDashBoard() {
+  // uuidv4(); //to generate uuid
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
