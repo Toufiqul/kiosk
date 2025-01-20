@@ -3,9 +3,12 @@ import { supabase } from "../client";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../state/auth";
 import { v4 as uuidv4 } from "uuid";
+import { useNavigate } from "react-router-dom";
 
 function AdminDashBoard() {
   // uuidv4(); //to generate uuid
+  const navigate = useNavigate();
+
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +50,7 @@ function AdminDashBoard() {
     try {
       const { error } = await supabase
         .from("notices")
-        .insert({ id: "d352bd61-3242-4e72-ae4d-ccd1c527aa95", ...formData });
+        .insert({ id: uuidv4(), ...formData });
       if (error) {
         console.error(error);
       }
@@ -90,7 +93,10 @@ function AdminDashBoard() {
     fetchAllNoticeData();
     fetchAllExamData();
   }, []);
-
+  const navToNotices = () => {
+    navigate("/notice");
+    console.log("navToNotices");
+  };
   return (
     <div className="p-6 font-sans">
       <h1 className="text-center text-2xl font-bold mb-6">Admin Dashboard</h1>
@@ -106,10 +112,13 @@ function AdminDashBoard() {
         </div>
 
         {/* Notices Card */}
-        <div className="w-56 p-4 border border-gray-300 rounded-lg shadow-lg text-center">
+        <div
+          className="w-56 p-4 border border-gray-300 rounded-lg shadow-lg text-center"
+          onClick={navToNotices}
+        >
           <h2 className="text-xl font-semibold">Notices</h2>
           <p className="text-gray-600 mt-2">
-            View and manage all notices here.{noticeData.length}
+            There are {noticeData.length} notices
           </p>
         </div>
       </div>

@@ -89,7 +89,9 @@ const CampusLayout = () => {
         "Final examinations schedule will be published by end of March",
     },
   ];
-
+  const navToAdmin = () => {
+    navigate("/admin");
+  };
   return (
     <div className="w-full max-w-4xl mx-auto p-4 space-y-6">
       {/* Google Earth View Section */}
@@ -194,6 +196,12 @@ const CampusLayout = () => {
           <span className="font-medium">Calendar</span>
         </button>
       </div>
+      <button
+        className="w-full px-4 py-2 mt-5 text-white bg-blue-500 rounded hover:bg-red-600"
+        onClick={navToAdmin}
+      >
+        Admin
+      </button>
       <button
         className="w-full px-4 py-2 mt-5 text-white bg-red-500 rounded hover:bg-red-600"
         onClick={handleLogOut}
