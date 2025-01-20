@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../client.js";
+import { supabase } from "../client";
 import { UserPlus } from "lucide-react";
+import { useAuthStore } from "../state/auth";
 function Home() {
+  const authenticateWith = useAuthStore((state) => state.authenticateWith);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isDeAuthenticated = useAuthStore((state) => state.deAuthenticate);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
@@ -16,6 +20,8 @@ function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const closeModal = () => {
     setActiveModal(null);
@@ -75,28 +81,59 @@ function Home() {
             // department: formData.department,
             // section: formData.section,
             role: formData.role,
+            password: formData.password,
           },
         ]);
 
         if (insertError) throw insertError;
-
+        authenticateWith("token");
         closeModal();
         navigate("/dashboard");
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || "An error occurred during signup");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogin = async (type: string) => {
-    console.log(type);
+  const handleLogin = async () => {
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select()
+        .eq("email", email);
+      console.log(data);
+      if (data && data?.length === 1) {
+        console.log(data[0].password, password);
+        if (data[0].password === password) {
+          authenticateWith("token");
+          closeModal();
+          navigate("/dashboard");
+        } else {
+          setError("Email or password is incorrect");
+          return;
+        }
+      } else {
+        setError("Email or password is incorrect");
+        return;
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
+
   const sign = async () => {
     // console.log(supabase);
     navigate("/admin");
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -165,27 +202,26 @@ function Home() {
             <h2 className="text-xl font-bold mb-4 text-center">Admin Login</h2>
             <input
               type="text"
-              placeholder="ID"
+              placeholder="Email"
               className="w-full p-2 mb-4 border rounded"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <input
-              type="password"
+              type="text"
               placeholder="Password"
               className="w-full p-2 mb-4 border rounded"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
-            <input
-              type="Department"
-              placeholder="Department"
-              className="w-full p-2 mb-4 border rounded"
-            />
-            <input
-              type="SEC"
-              placeholder="SEC"
-              className="w-full p-2 mb-4 border rounded"
-            />
+            {error && (
+              <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg">
+                {error}
+              </div>
+            )}
             <button
-              className="w-full px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mb-2"
-              onClick={() => handleLogin("admin")}
+              className="w-full px-4 py-2 text-white bg-purple-500 rounded hover:bg-purple-600 mb-2"
+              onClick={handleLogin}
             >
               Login
             </button>
@@ -208,22 +244,26 @@ function Home() {
             </h2>
             <input
               type="text"
-              placeholder="ID"
+              placeholder="Email"
               className="w-full p-2 mb-4 border rounded"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <input
               type="text"
-              placeholder="Department"
+              placeholder="Password"
               className="w-full p-2 mb-4 border rounded"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
-            <input
-              type="text"
-              placeholder="Section"
-              className="w-full p-2 mb-4 border rounded"
-            />
+            {error && (
+              <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg">
+                {error}
+              </div>
+            )}
             <button
               className="w-full px-4 py-2 text-white bg-purple-500 rounded hover:bg-purple-600 mb-2"
-              onClick={() => handleLogin("student")}
+              onClick={handleLogin}
             >
               Login
             </button>

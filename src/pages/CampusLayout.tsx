@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from "react";
 // import { Dialog } from '@/components/ui/dialog';
-import { Calendar, GraduationCap, FileText } from "lucide-react";
+import { GraduationCap, FileText } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { useAuthStore } from "../state/auth";
+import { useNavigate } from "react-router-dom";
 
 const CampusLayout = () => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const deAuthenticate = useAuthStore((state) => state.deAuthenticate);
+  const navigate = useNavigate();
+
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const closeModal = () => setActiveModal(null);
   //   AIzaSyB0ZUk2rbYgLMRYnxuaEjN8gMpmbTrLPj8
+  const handleLogOut = () => {
+    deAuthenticate();
+    navigate("/");
+  };
   useEffect(() => {
-    console.log("somethingflal");
     // Load the Google Earth API
     console.log(import.meta.env.GOOGLE_API_KEY);
     const loadGoogleEarth = () => {
@@ -178,10 +190,16 @@ const CampusLayout = () => {
           onClick={() => setActiveModal("calendar")}
           className="p-6 border rounded-lg hover:bg-gray-50 flex flex-col items-center transition-colors"
         >
-          <Calendar size={24} className="mb-2" />
+          {/* <Calendar size={24} className="mb-2" /> */}
           <span className="font-medium">Calendar</span>
         </button>
       </div>
+      <button
+        className="w-full px-4 py-2 mt-5 text-white bg-red-500 rounded hover:bg-red-600"
+        onClick={handleLogOut}
+      >
+        Logout
+      </button>
 
       {/* Modals */}
       {activeModal === "dept" && (
@@ -238,10 +256,16 @@ const CampusLayout = () => {
           <div className="bg-white rounded-lg max-w-3xl w-full p-6">
             <h2 className="text-xl font-semibold mb-4">Academic Calendar</h2>
             <div className="aspect-video bg-gray-100 flex items-center justify-center rounded-lg overflow-hidden">
-              <img
+              {/* <img
                 src="/calender.jpeg"
                 alt="Academic Calendar"
                 className="w-full h-full object-contain"
+              /> */}
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                className="rounded-md border"
               />
             </div>
             <button
