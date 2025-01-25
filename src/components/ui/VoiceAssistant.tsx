@@ -3,32 +3,28 @@ import { Mic, MicOff } from "lucide-react";
 import { useVoiceToText } from "react-speakup";
 
 const VoiceAssistant = () => {
-  const { startListening, stopListening, transcript } = useVoiceToText({
-    continuous: false,
+  const { startListening, stopListening, transcript, reset } = useVoiceToText({
+    continuous: true, //if its true, it'll stop listening manually, otherwise it stop listening anytime the speech will finished
     lang: "en-US",
   });
   const [truncatedTranscript, setTruncatedTranscript] = useState("");
 
-  const [isOpen, setIsOpen] = useState(false); // To toggle the assistant's open/close state
+  const [isOpen, setIsOpen] = useState(false);
   const handleCommand = (command: string) => {
     console.log("Command received:", command);
-    // Call your function here with the command
+    reset();
   };
   useEffect(() => {
-    // Check if "command" exists in the transcript
     const commandIndex = transcript.toLowerCase().indexOf("command");
     if (commandIndex !== -1) {
-      // Extract the text after "command"
       const command = transcript.slice(commandIndex + "command".length).trim();
-      handleCommand(command); // Send the command to your function
+      handleCommand(command);
     }
 
-    // Update the truncated transcript
     setTruncatedTranscript(transcript.slice(0, 50));
   }, [transcript]);
   return (
     <div className="fixed bottom-6 right-6 flex flex-col items-center gap-4 z-50">
-      {/* Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600"
@@ -36,7 +32,6 @@ const VoiceAssistant = () => {
         {isOpen ? <MicOff size={24} /> : <Mic size={24} />}
       </button>
 
-      {/* Voice Assistant Panel */}
       {isOpen && (
         <div className="bg-white p-4 rounded-lg shadow-xl w-72">
           <h3 className="text-lg font-bold text-gray-700 mb-2">
