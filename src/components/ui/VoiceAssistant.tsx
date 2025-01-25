@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Mic, MicOff } from "lucide-react";
 import { useVoiceToText } from "react-speakup";
+import { useNavigate } from "react-router-dom";
 
 const VoiceAssistant = () => {
+  const navigate = useNavigate(); // React Router's navigation hook
+
   const { startListening, stopListening, transcript, reset } = useVoiceToText({
     continuous: true, //if its true, it'll stop listening manually, otherwise it stop listening anytime the speech will finished
     lang: "en-US",
@@ -12,6 +15,19 @@ const VoiceAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const handleCommand = (command: string) => {
     console.log("Command received:", command);
+    if (command.toLowerCase().includes("dashboard")) {
+      navigate("/dashboard");
+    } else if (command.toLowerCase().includes("home")) {
+      navigate("/");
+    } else if (command.toLowerCase().includes("admin")) {
+      navigate("/admin");
+    } else if (command.toLowerCase().includes("notice")) {
+      navigate("/notice");
+    } else if (command.toLowerCase().includes("test")) {
+      navigate("/test");
+    } else {
+      console.log("Unrecognized command:", command);
+    }
     reset();
   };
   useEffect(() => {
