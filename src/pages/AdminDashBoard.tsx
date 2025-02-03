@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "../state/auth";
 import { v4 as uuidv4 } from "uuid";
 import { useNavigate } from "react-router-dom";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 function AdminDashBoard() {
   // uuidv4(); //to generate uuid
@@ -35,6 +45,8 @@ function AdminDashBoard() {
       published_at: new Date(),
     });
   };
+  const [date, setDate] = React.useState<Date>();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -142,16 +154,6 @@ function AdminDashBoard() {
           <div className="bg-white p-6 rounded shadow-lg w-80">
             <h2 className="text-xl font-bold mb-4 text-center">Create Exam</h2>
             <input
-              type="text"
-              placeholder="ID"
-              className="w-full p-2 mb-4 border rounded"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full p-2 mb-4 border rounded"
-            />
-            <input
               type="Department"
               placeholder="Department"
               className="w-full p-2 mb-4 border rounded"
@@ -161,6 +163,30 @@ function AdminDashBoard() {
               placeholder="SEC"
               className="w-full p-2 mb-4 border rounded"
             />
+            <div className="mb-4">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-[280px] justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
             <button
               className="w-full px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mb-2"
               onClick={() => createExam()}
