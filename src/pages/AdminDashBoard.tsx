@@ -154,6 +154,18 @@ function AdminDashBoard() {
           <div className="bg-white p-6 rounded shadow-lg w-80">
             <h2 className="text-xl font-bold mb-4 text-center">Create Exam</h2>
             <input
+              type="text"
+              placeholder="Exam Name"
+              className="w-full p-2 mb-4 border rounded"
+            />
+
+            <input
+              type="text"
+              placeholder="Subject"
+              className="w-full p-2 mb-4 border rounded"
+            />
+
+            <input
               type="Department"
               placeholder="Department"
               className="w-full p-2 mb-4 border rounded"
