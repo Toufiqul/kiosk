@@ -32,6 +32,9 @@ function AdminDashBoard() {
     notice_type: "",
     published_by: "d352bd61-3242-4e72-ae4d-ccd1c527aa95",
     published_at: new Date(),
+    examName: "",
+    subject: "",
+    sec: "",
   });
   const closeModal = () => {
     setActiveModal(null);
@@ -43,6 +46,9 @@ function AdminDashBoard() {
       notice_type: "",
       published_by: "",
       published_at: new Date(),
+      examName: "",
+      subject: "",
+      sec: "",
     });
   };
   const [date, setDate] = React.useState<Date>();
@@ -55,7 +61,7 @@ function AdminDashBoard() {
     }));
   };
   const createExam = () => {
-    console.log("create exam");
+    console.log(formData);
   };
   const createNotice = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -153,64 +159,78 @@ function AdminDashBoard() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-lg w-80">
             <h2 className="text-xl font-bold mb-4 text-center">Create Exam</h2>
-            <input
-              type="text"
-              placeholder="Exam Name"
-              className="w-full p-2 mb-4 border rounded"
-            />
+            <form onSubmit={createExam}>
+              <input
+                type="text"
+                name="examName"
+                value={formData.examName}
+                placeholder="Department ID"
+                className="w-full p-2 mb-4 border rounded"
+                onChange={handleChange}
+              />
 
-            <input
-              type="text"
-              placeholder="Subject"
-              className="w-full p-2 mb-4 border rounded"
-            />
+              <input
+                type="text"
+                name="subject"
+                placeholder="Subject"
+                className="w-full p-2 mb-4 border rounded"
+                value={formData.subject}
+                onChange={handleChange}
+              />
 
-            <input
-              type="Department"
-              placeholder="Department"
-              className="w-full p-2 mb-4 border rounded"
-            />
-            <input
-              type="SEC"
-              placeholder="SEC"
-              className="w-full p-2 mb-4 border rounded"
-            />
-            <div className="mb-4">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <button
-              className="w-full px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mb-2"
-              onClick={() => createExam()}
-            >
-              Create Exam
-            </button>
-            <button
-              className="w-full px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
-              onClick={closeModal}
-            >
-              Close
-            </button>
+              <input
+                type="text"
+                name="department_id"
+                value={formData.department_id}
+                placeholder="Department ID"
+                className="w-full p-2 mb-4 border rounded"
+                onChange={handleChange}
+              />
+              <input
+                type="text"
+                placeholder="SEC"
+                name="sec"
+                className="w-full p-2 mb-4 border rounded"
+                value={formData.sec}
+                onChange={handleChange}
+              />
+              <div className="mb-4">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-[280px] justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <button
+                type="submit"
+                className="w-full px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 mb-2"
+              >
+                Create Exam
+              </button>
+              <button
+                className="w-full px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600"
+                onClick={closeModal}
+              >
+                Close
+              </button>
+            </form>
           </div>
         </div>
       )}
