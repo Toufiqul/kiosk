@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { HolidayModal } from "@/components/ui/addHolidayModal";
+import { ClassroomModal } from "@/components/ui/addLevelPlan";
 
 function AdminDashBoard() {
   // uuidv4(); //to generate uuid
@@ -32,6 +34,7 @@ function AdminDashBoard() {
     notice_type: "",
     published_by: "d352bd61-3242-4e72-ae4d-ccd1c527aa95",
     published_at: new Date(),
+    examDate: "",
     examName: "",
     subject: "",
     sec: "",
@@ -49,6 +52,7 @@ function AdminDashBoard() {
       examName: "",
       subject: "",
       sec: "",
+      examDate: "",
     });
   };
   const [date, setDate] = React.useState<Date>();
@@ -62,6 +66,7 @@ function AdminDashBoard() {
   };
   const createExam = () => {
     console.log(formData);
+    console.log(date);
   };
   const createNotice = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -115,13 +120,20 @@ function AdminDashBoard() {
     navigate("/notice");
     console.log("navToNotices");
   };
+
+  const handleSave = (holiday: {
+    start_date: string | null;
+    end_date: string | null;
+    occasion: string;
+  }) => {
+    console.log("New Holiday:", holiday);
+    // Send to backend via API
+  };
   return (
     <div className="p-6 font-sans">
       <h1 className="text-center text-2xl font-bold mb-6">Admin Dashboard</h1>
 
-      {/* Cards */}
       <div className="flex gap-6 justify-center mb-6">
-        {/* Exams Card */}
         <div className="w-56 p-4 border border-gray-300 rounded-lg shadow-lg text-center">
           <h2 className="text-xl font-semibold">Exams</h2>
           <p className="text-gray-600 mt-2">
@@ -129,7 +141,6 @@ function AdminDashBoard() {
           </p>
         </div>
 
-        {/* Notices Card */}
         <div
           className="w-56 p-4 border border-gray-300 rounded-lg shadow-lg text-center"
           onClick={navToNotices}
@@ -142,19 +153,23 @@ function AdminDashBoard() {
       </div>
 
       <div className="flex gap-6 justify-center">
-        <button
-          className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg shadow-md hover:bg-blue-600"
-          onClick={() => setActiveModal("exam")}
-        >
-          Add Exam
-        </button>
-        <button
-          className="px-6 py-2 bg-green-500 text-white font-medium rounded-lg shadow-md hover:bg-green-600"
-          onClick={() => setActiveModal("notice")}
-        >
-          Add Notice
-        </button>
+        <Button onClick={() => setActiveModal("exam")}>Add Exam</Button>
+        <Button onClick={() => setActiveModal("notice")}>Add Notice</Button>
+        <Button onClick={() => setActiveModal("holidays")}>Add Holiday</Button>
+        <Button onClick={() => setActiveModal("levelPlan")}>
+          Add Classroom
+        </Button>
       </div>
+      <HolidayModal
+        isOpen={activeModal === "holidays"}
+        onClose={() => setActiveModal("")}
+        onSave={handleSave}
+      />
+      <ClassroomModal
+        isOpen={activeModal === "levelPlan"}
+        onClose={() => setActiveModal("")}
+        onSave={handleSave}
+      />
       {activeModal === "exam" && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-lg w-80">
