@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { 
-  Calendar as CalendarIcon, 
-  GraduationCap, 
-  FileText, 
-  BellRing, 
+import {
+  Calendar as CalendarIcon,
+  GraduationCap,
+  FileText,
+  BellRing,
   BookOpen,
   Users,
   Calendar,
@@ -23,8 +23,9 @@ import {
   X,
   ClipboardList,
   School,
+  PencilRuler,
   Mail,
-  Phone
+  Phone,
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -86,12 +87,12 @@ function AdminDashboard() {
   const [noticeData, setNoticeData] = useState<Notice[]>([]);
   const [examData, setExamData] = useState<Exam[]>([]);
   const [date, setDate] = useState<Date>(new Date());
-  
+
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 2450,
     totalFaculty: 120,
     totalDepartments: 6,
-    activeExams: 8
+    activeExams: 8,
   });
 
   const [formData, setFormData] = useState<FormData>({
@@ -115,7 +116,7 @@ function AdminDashboard() {
     await Promise.all([
       fetchAllDepartmentData(),
       fetchAllNoticeData(),
-      fetchAllExamData()
+      fetchAllExamData(),
     ]);
   };
 
@@ -134,9 +135,13 @@ function AdminDashboard() {
     if (!error && data) setExamData(data);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const createExam = async (e: React.FormEvent) => {
@@ -145,7 +150,7 @@ function AdminDashboard() {
       const { error } = await supabase
         .from("exam_schedules")
         .insert({ id: uuidv4(), ...formData, examDate: date.toISOString() });
-      
+
       if (!error) {
         fetchAllExamData();
         closeModal();
@@ -161,7 +166,7 @@ function AdminDashboard() {
       const { error } = await supabase
         .from("notices")
         .insert({ id: uuidv4(), ...formData });
-      
+
       if (!error) {
         fetchAllNoticeData();
         closeModal();
@@ -188,13 +193,27 @@ function AdminDashboard() {
     });
   };
 
-  const handleSave = (holiday: { start_date: string | null; end_date: string | null; occasion: string }) => {
+  const handleSave = (holiday: {
+    start_date: string | null;
+    end_date: string | null;
+    occasion: string;
+  }) => {
     console.log("New Holiday:", holiday);
     // Implement holiday saving logic
   };
 
   // Component for statistics cards
-  const StatCard = ({ icon: Icon, title, value, color }: { icon: any; title: string; value: number; color: string }) => (
+  const StatCard = ({
+    icon: Icon,
+    title,
+    value,
+    color,
+  }: {
+    icon: any;
+    title: string;
+    value: number;
+    color: string;
+  }) => (
     <div className="bg-white rounded-lg shadow-sm p-6 flex items-center space-x-4">
       <div className={`p-3 rounded-full ${color}`}>
         <Icon className="h-6 w-6 text-white" />
@@ -207,7 +226,15 @@ function AdminDashboard() {
   );
 
   // Component for quick action buttons
-  const QuickActionButton = ({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) => (
+  const QuickActionButton = ({
+    icon: Icon,
+    label,
+    onClick,
+  }: {
+    icon: any;
+    label: string;
+    onClick: () => void;
+  }) => (
     <button
       onClick={onClick}
       className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow space-y-2 w-full"
@@ -227,13 +254,15 @@ function AdminDashboard() {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
-                <img 
-                  src="https://afd.gov.bd/sites/default/files/inline-images/MIST%20Logo_0.png" 
-                  alt="MIST Logo" 
+                <img
+                  src="https://afd.gov.bd/sites/default/files/inline-images/MIST%20Logo_0.png"
+                  alt="MIST Logo"
                   className="h-12 w-auto"
                 />
                 <div className="ml-3">
-                  <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    Admin Dashboard
+                  </h1>
                   <p className="text-sm text-gray-500">MIST COMPASS</p>
                 </div>
               </div>
@@ -245,8 +274,8 @@ function AdminDashboard() {
                   3
                 </span>
               </button> */}
-              <button 
-                onClick={() => navigate('/')}
+              <button
+                onClick={() => navigate("/")}
                 className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center space-x-2"
               >
                 <span>Logout</span>
@@ -258,29 +287,32 @@ function AdminDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Quick Over View
+        </h2>
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard 
-            icon={Users} 
-            title="Total Students" 
+          <StatCard
+            icon={Users}
+            title="Total Students"
             value={stats.totalStudents}
             color="bg-blue-500"
           />
-          <StatCard 
-            icon={GraduationCap} 
-            title="Faculty Members" 
+          <StatCard
+            icon={GraduationCap}
+            title="Faculty Members"
             value={stats.totalFaculty}
             color="bg-green-500"
           />
-          <StatCard 
-            icon={Building2} 
-            title="Departments" 
+          <StatCard
+            icon={Building2}
+            title="Departments"
             value={stats.totalDepartments}
             color="bg-purple-500"
           />
-          <StatCard 
-            icon={ClipboardList} 
-            title="Active Exams" 
+          <StatCard
+            icon={ClipboardList}
+            title="Active Exams"
             value={stats.activeExams}
             color="bg-orange-500"
           />
@@ -288,26 +320,28 @@ function AdminDashboard() {
 
         {/* Quick Actions */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <QuickActionButton 
-              icon={Plus} 
-              label="Add Exam" 
+            <QuickActionButton
+              icon={PencilRuler}
+              label="Add Exam"
               onClick={() => setActiveModal("exam")}
             />
-            <QuickActionButton 
-              icon={BellRing} 
-              label="Add Notice" 
+            <QuickActionButton
+              icon={BellRing}
+              label="Add Notice"
               onClick={() => setActiveModal("notice")}
             />
-            <QuickActionButton 
-              icon={Calendar} 
-              label="Add Holiday" 
+            <QuickActionButton
+              icon={Calendar}
+              label="Add Holiday"
               onClick={() => setActiveModal("holidays")}
             />
-            <QuickActionButton 
-              icon={School} 
-              label="Add Classroom" 
+            <QuickActionButton
+              icon={School}
+              label="Add Classroom"
               onClick={() => setActiveModal("levelPlan")}
             />
           </div>
@@ -316,7 +350,9 @@ function AdminDashboard() {
         {/* Recent Activity */}
         <section className="grid md:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Notices</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 underline">
+              Recent Notices
+            </h2>
             <div className="space-y-4">
               {noticeData.slice(0, 5).map((notice) => (
                 <div key={notice.id} className="border-b pb-4">
@@ -328,7 +364,9 @@ function AdminDashboard() {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Exams</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 underline">
+              Upcoming Exams
+            </h2>
             <div className="space-y-4">
               {examData.slice(0, 5).map((exam) => (
                 <div key={exam.id} className="border-b pb-4">
@@ -345,11 +383,13 @@ function AdminDashboard() {
 
       {/* Footer */}
       <footer className="w-full py-4 bg-gray-900 text-white text-center">
-        <p className="text-sm">© {new Date().getFullYear()} Military Institute of Science and Technology</p>
+        <p className="text-sm">
+          © {new Date().getFullYear()} Military Institute of Science and
+          Technology
+        </p>
         {/* <p className="text-xs text-gray-400 mt-1">Technology for Advancement</p> */}
       </footer>
 
-          
       {/* Modals */}
       <HolidayModal
         isOpen={activeModal === "holidays"}
@@ -369,12 +409,17 @@ function AdminDashboard() {
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Create New Exam</h2>
-                <button onClick={closeModal} className="text-gray-400 hover:text-gray-500">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Create New Exam
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-500"
+                >
                   <X className="h-6 w-6" />
                 </button>
               </div>
-              
+
               <form onSubmit={createExam} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -469,148 +514,150 @@ function AdminDashboard() {
 
       {/* Notice Modal */}
       {activeModal === "notice" && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-xl">
-      <div className="flex justify-between items-center px-6 py-4 border-b">
-        <h2 className="text-xl font-semibold text-gray-900">Create New Notice</h2>
-        <button 
-          onClick={closeModal}
-          className="text-gray-400 hover:text-gray-500 transition-colors"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
-      
-      <form onSubmit={createNotice} className="p-6 space-y-6">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notice Title
-              <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Enter notice title"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-xl">
+            <div className="flex justify-between items-center px-6 py-4 border-b">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Create New Notice
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-500 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notice Type
-              <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="notice_type"
-              value={formData.notice_type}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            >
-              <option value="">Select notice type</option>
-              <option value="general">General Notice</option>
-              <option value="academic">Academic Notice</option>
-              <option value="exam">Exam Notice</option>
-              <option value="event">Event Notice</option>
-              <option value="holiday">Holiday Notice</option>
-            </select>
-          </div>
+            <form onSubmit={createNotice} className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notice Title
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="Enter notice title"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Department
-              <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="department_id"
-              value={formData.department_id}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            >
-              <option value="">Select department</option>
-              {departmentData.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notice Type
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="notice_type"
+                    value={formData.notice_type}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select notice type</option>
+                    <option value="general">General Notice</option>
+                    <option value="academic">Academic Notice</option>
+                    <option value="exam">Exam Notice</option>
+                    <option value="event">Event Notice</option>
+                    <option value="holiday">Holiday Notice</option>
+                  </select>
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notice Content
-              <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="content"
-              value={formData.content}
-              onChange={handleChange}
-              rows={5}
-              placeholder="Enter notice content"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-              required
-            />
-          </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Department
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="department_id"
+                    value={formData.department_id}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select department</option>
+                    {departmentData.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Publication Date
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notice Content
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="content"
+                    value={formData.content}
+                    onChange={handleChange}
+                    rows={5}
+                    placeholder="Enter notice content"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Publication Date
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end space-x-3 pt-6 border-t">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <CalendarComponent
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Create Notice
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-            {error}
-          </div>
-        )}
-
-        <div className="flex items-center justify-end space-x-3 pt-6 border-t">
-          <button
-            type="button"
-            onClick={closeModal}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Create Notice
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }
