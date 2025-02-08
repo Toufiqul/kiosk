@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-// import { Dialog } from '@/components/ui/dialog';
-import { GraduationCap, FileText } from "lucide-react";
+import { GraduationCap, FileText, Calendar as CalendarIcon, Menu, X } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useAuthStore } from "../state/auth";
 import { useNavigate } from "react-router-dom";
@@ -9,67 +8,127 @@ const CampusLayout = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const deAuthenticate = useAuthStore((state) => state.deAuthenticate);
   const navigate = useNavigate();
+  const [date, setDate] = React.useState(new Date());
+  const [activeModal, setActiveModal] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedTower, setSelectedTower] = useState(null);
+  const [map, setMap] = useState(null);
 
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-
-  const [activeModal, setActiveModal] = useState<string | null>(null);
   const closeModal = () => setActiveModal(null);
-  //   AIzaSyB0ZUk2rbYgLMRYnxuaEjN8gMpmbTrLPj8
+  
   const handleLogOut = () => {
     deAuthenticate();
     navigate("/");
   };
+
+  const towers = [
+    {
+      id: 1,
+      name: "Tower 1",
+      position: { lat: 23.8378, lng: 90.3578 },
+      info: "Main Academic Building - Houses CSE and EEE departments",
+    },
+    {
+      id: 2,
+      name: "Tower 2",
+      position: { lat: 23.8383, lng: 90.3577 },
+      info: "Engineering Complex - Contains ME and Civil Engineering facilities",
+    },
+    {
+      id: 3,
+      name: "Tower 3",
+      position: { lat: 23.83777, lng: 90.3572 },
+      info: "Research Wing - Advanced laboratories and research centers",
+    },
+    {
+      id: 4,
+      name: "Tower 4",
+      position: { lat: 23.83825, lng: 90.3572 },
+      info: "Administrative Building - Offices and conference rooms",
+    },
+  ];
+
   useEffect(() => {
-    // Load the Google Earth API
-    console.log(import.meta.env.GOOGLE_API_KEY);
-    const loadGoogleEarth = () => {
-      const script = document.createElement("script");
-      script.src = `https://www.google.com/earth/api/earth-api.js?key=${
-        import.meta.env.GOOGLE_API_KEY
-      }`;
-      script.async = true;
-      script.defer = true;
+    // Load the Google Maps JavaScript API
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${'AIzaSyDtajbjXfvf4khJQI0kQFhwyEC5W-JbVq0'}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = initializeMap;
+    document.head.appendChild(script);
 
-      script.onload = initializeEarth;
-      document.body.appendChild(script);
-
-      return () => {
-        document.body.removeChild(script);
-      };
+    return () => {
+      document.head.removeChild(script);
     };
-
-    // Initialize Earth view
-    const initializeEarth = () => {
-      if (window.google && window.google.earth) {
-        const ge = new window.google.earth.Engine({
-          container: "earth-view",
-          zoom: 18, // Close zoom for campus view
-          center: { lat: 23.8377, lng: 90.3579 },
-          tilt: 45, // Tilt for better 3D perspective
-          bearing: 0,
-          terrain: true,
-          atmosphere: true,
-          buildings: true,
-        });
-
-        // Set initial viewpoint
-        ge.setView({
-          position: {
-            latitude: 23.8377,
-            longitude: 90.3579,
-            altitude: 500, // Height in meters
-          },
-          orientation: {
-            heading: 0,
-            tilt: 45,
-            roll: 0,
-          },
-        });
-      }
-    };
-
-    loadGoogleEarth();
   }, []);
+
+  const initializeMap = () => {
+    if (window.google) {
+      const mapInstance = new window.google.maps.Map(document.getElementById('campus-map'), {
+        center: { lat: 23.8377, lng: 90.3579 },
+        zoom: 18,
+        mapTypeId: 'satellite',
+        tilt: 45,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+          position: window.google.maps.ControlPosition.TOP_RIGHT,
+          mapTypeIds: ['roadmap', 'satellite']
+        },
+        zoomControl: true,
+        zoomControlOptions: {
+          position: window.google.maps.ControlPosition.RIGHT_CENTER,
+        },
+        scaleControl: true,
+        streetViewControl: true,
+        streetViewControlOptions: {
+          position: window.google.maps.ControlPosition.RIGHT_CENTER,
+        },
+        fullscreenControl: true,
+      });
+
+      setMap(mapInstance);
+
+      // Add markers for each tower
+      towers.forEach(tower => {
+        const marker = new window.google.maps.Marker({
+          position: tower.position,
+          map: mapInstance,
+          title: tower.name,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 12,
+            fillColor: "#FFD700",
+            fillOpacity: 0.9,
+            strokeWeight: 2,
+            strokeColor: "#FFFFFF",
+          },
+          animation: window.google.maps.Animation.BOUNCE,
+        });
+
+        const infoWindow = new window.google.maps.InfoWindow({
+          content: `
+            <div class="p-4">
+              <h3 class="text-lg font-semibold mb-2">${tower.name}</h3>
+              <p class="text-gray-600">${tower.info}</p>
+            </div>
+          `,
+        });
+
+        marker.addListener('mouseover', () => {
+          infoWindow.open(mapInstance, marker);
+        });
+
+        marker.addListener('mouseout', () => {
+          infoWindow.close();
+        });
+
+        marker.addListener('click', () => {
+          setSelectedTower(tower);
+        });
+      });
+    }
+  };
 
   const departments = ["CSE", "NSE", "ME", "EEE", "Civil", "Architecture"];
 
@@ -78,197 +137,225 @@ const CampusLayout = () => {
       id: 1,
       title: "Mid Term Examination Schedule - Spring 2025",
       date: "2025-02-15",
-      description:
-        "Mid term examinations for all departments will commence from March 1st, 2025",
+      description: "Mid term examinations for all departments will commence from March 1st, 2025",
     },
     {
       id: 2,
       title: "Final Term Examination Notice",
       date: "2025-03-20",
-      description:
-        "Final examinations schedule will be published by end of March",
+      description: "Final examinations schedule will be published by end of March",
     },
   ];
-  const navToAdmin = () => {
-    navigate("/admin");
-  };
+
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 space-y-6">
-      {/* Google Earth View Section */}
-      <div className="border rounded-lg overflow-hidden">
-        <h2 className="text-lg font-semibold p-4 bg-white">MIST Campus View</h2>
-        <div className="aspect-[16/9] bg-gray-100">
-          <img
-            src="/campus.jpeg" // Replace this with your actual satellite image
-            alt="MIST Campus Satellite View"
-            className="w-full h-full object-cover"
-          />
-          {/* Tower Labels */}
-          {/* Left Front (Tower 1) */}
-          <div
-            className="absolute"
-            style={{
-              top: "30%",
-              left: "40%",
-              transform: "translate(-50%, -50%)",
-              color: "yellow",
-              fontWeight: "bold",
-              fontSize: 22,
-              textShadow: "0px 0px 5px black",
-            }}
-          >
-            Tower 1
-          </div>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <img src="https://afd.gov.bd/sites/default/files/inline-images/MIST%20Logo_0.png" alt="MIST Logo" className="h-8 w-auto mr-3" />
+              <h1 className="text-xl font-semibold text-gray-900">Military Institute of Science & Technology</h1>
+            </div>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-4">
+              <button onClick={() => setActiveModal("dept")} 
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                Departments
+              </button>
+              <button onClick={() => setActiveModal("exam")}
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                Examinations
+              </button>
+              <button onClick={() => setActiveModal("calendar")}
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                Calendar
+              </button>
+              <button onClick={handleLogOut}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Logout
+              </button>
+            </nav>
 
-          {/* Right Front (Tower 2) */}
-          <div
-            className="absolute"
-            style={{
-              top: "30%",
-              left: "58%",
-              transform: "translate(-50%, -50%)",
-              color: "yellow",
-              fontWeight: "bold",
-              fontSize: 22,
-              textShadow: "0px 0px 5px black",
-            }}
-          >
-            Tower 2
-          </div>
-
-          {/* Left Back (Tower 3) */}
-          <div
-            className="absolute"
-            style={{
-              top: "15%",
-              left: "42%",
-              transform: "translate(-50%, -50%)",
-              color: "yellow",
-              fontWeight: "bold",
-              fontSize: 22,
-              textShadow: "0px 0px 5px black",
-            }}
-          >
-            Tower 3
-          </div>
-
-          {/* Right Back (Tower 4) */}
-          <div
-            className="absolute"
-            style={{
-              top: "15%",
-              left: "56%",
-              transform: "translate(-50%, -50%)",
-              color: "yellow",
-              fontWeight: "bold",
-              fontSize: 22,
-              textShadow: "0px 0px 5px black",
-            }}
-          >
-            Tower 4
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Interactive sections */}
-      <div className="grid grid-cols-3 gap-4">
-        <button
-          onClick={() => setActiveModal("dept")}
-          className="p-6 border rounded-lg hover:bg-gray-50 flex flex-col items-center transition-colors"
-        >
-          <GraduationCap size={24} className="mb-2" />
-          <span className="font-medium">Departments</span>
-        </button>
+        {/* Mobile menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <button onClick={() => {
+                setActiveModal("dept");
+                setIsMobileMenuOpen(false);
+              }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+                Departments
+              </button>
+              <button onClick={() => {
+                setActiveModal("exam");
+                setIsMobileMenuOpen(false);
+              }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+                Examinations
+              </button>
+              <button onClick={() => {
+                setActiveModal("calendar");
+                setIsMobileMenuOpen(false);
+              }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+                Calendar
+              </button>
+              <button onClick={handleLogOut}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-700 hover:bg-gray-50">
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
 
-        <button
-          onClick={() => setActiveModal("exam")}
-          className="p-6 border rounded-lg hover:bg-gray-50 flex flex-col items-center transition-colors"
-        >
-          <FileText size={24} className="mb-2" />
-          <span className="font-medium">Exam</span>
-        </button>
+      {/* Main Content */}
+      <main className="flex-grow container mx-auto px-4 py-8">
+        {/* Campus View Section */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+          <div className="border-b border-gray-200 px-6 py-4">
+            <h2 className="text-xl font-semibold text-gray-800">MIST Campus View</h2>
+          </div>
+          <div className="relative">
+            <div id="campus-map" className="w-full h-[500px]" />
+            
+            {/* Tower Information Panel */}
+            {selectedTower && (
+              <div className="absolute bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg max-w-sm">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-lg font-semibold text-gray-900">{selectedTower.name}</h3>
+                  <button 
+                    onClick={() => setSelectedTower(null)}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <p className="mt-2 text-gray-600">{selectedTower.info}</p>
+              </div>
+            )}
+          </div>
+        </div>
 
-        <button
-          onClick={() => setActiveModal("calendar")}
-          className="p-6 border rounded-lg hover:bg-gray-50 flex flex-col items-center transition-colors"
-        >
-          {/* <Calendar size={24} className="mb-2" /> */}
-          <span className="font-medium">Calendar</span>
-        </button>
-      </div>
-      <button
-        className="w-full px-4 py-2 mt-5 text-white bg-blue-500 rounded hover:bg-red-600"
-        onClick={navToAdmin}
-      >
-        Admin
-      </button>
-      <button
-        className="w-full px-4 py-2 mt-5 text-white bg-red-500 rounded hover:bg-red-600"
-        onClick={handleLogOut}
-      >
-        Logout
-      </button>
+        {/* Quick Access Cards */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <button onClick={() => setActiveModal("dept")}
+            className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center">
+            <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+              <GraduationCap className="h-6 w-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">Departments</h3>
+            <p className="mt-2 text-sm text-gray-500 text-center">
+              Browse academic departments and programs
+            </p>
+          </button>
+
+          <button onClick={() => setActiveModal("exam")}
+            className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center">
+            <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mb-4">
+              <FileText className="h-6 w-6 text-green-600" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">Examinations</h3>
+            <p className="mt-2 text-sm text-gray-500 text-center">
+              View exam schedules and notices
+            </p>
+          </button>
+
+          <button onClick={() => setActiveModal("calendar")}
+            className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col items-center">
+            <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center mb-4">
+              <CalendarIcon className="h-6 w-6 text-purple-600" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">Calendar</h3>
+            <p className="mt-2 text-sm text-gray-500 text-center">
+              Academic calendar and events
+            </p>
+          </button>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full py-4 bg-gray-900 text-white text-center">
+        <p className="text-sm">© {new Date().getFullYear()} Military Institute of Science and Technology</p>
+        {/* <p className="text-xs text-gray-400 mt-1">Technology for Advancement</p> */}
+      </footer>
 
       {/* Modals */}
       {activeModal === "dept" && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h2 className="text-xl font-semibold mb-4">Departments</h2>
-            <ul className="space-y-2">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">Academic Departments</h2>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-500">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-3">
               {departments.map((dept) => (
-                <li
+                <div
                   key={dept}
-                  className="p-3 border rounded hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-between"
                 >
-                  {dept}
-                </li>
+                  <div className="flex items-center">
+                    <GraduationCap className="h-5 w-5 text-blue-600 mr-3" />
+                    <span className="font-medium text-gray-900">{dept}</span>
+                  </div>
+                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               ))}
-            </ul>
-            <button
-              className="w-full px-4 py-2 mt-5 text-white bg-red-500 rounded hover:bg-red-600"
-              onClick={closeModal}
-            >
-              Close
-            </button>
+            </div>
           </div>
         </div>
       )}
 
       {activeModal === "exam" && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-            <h2 className="text-xl font-semibold mb-4">Exam Notices</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">Examination Notices</h2>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-500">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
             <div className="space-y-4">
               {examNotices.map((notice) => (
-                <div key={notice.id} className="border rounded-lg p-4">
+                <div key={notice.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-medium">{notice.title}</h3>
-                    <span className="text-sm text-gray-500">{notice.date}</span>
+                    <h3 className="text-lg font-medium text-gray-900">{notice.title}</h3>
+                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {new Date(notice.date).toLocaleDateString()}
+                    </span>
                   </div>
                   <p className="text-gray-600">{notice.description}</p>
                 </div>
               ))}
             </div>
-            <button
-              className="w-full px-4 py-2 mt-5 text-white bg-red-500 rounded hover:bg-red-600"
-              onClick={closeModal}
-            >
-              Close
-            </button>
           </div>
         </div>
       )}
 
       {activeModal === "calendar" && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-3xl w-full p-6">
-            <h2 className="text-xl font-semibold mb-4">Academic Calendar</h2>
-            <div className="aspect-video bg-gray-100 flex items-center justify-center rounded-lg overflow-hidden">
-              {/* <img
-                src="/calender.jpeg"
-                alt="Academic Calendar"
-                className="w-full h-full object-contain"
-              /> */}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">Academic Calendar</h2>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-500">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-4 bg-white rounded-lg">
               <Calendar
                 mode="single"
                 selected={date}
@@ -276,12 +363,6 @@ const CampusLayout = () => {
                 className="rounded-md border"
               />
             </div>
-            <button
-              className="w-full px-4 py-2 mt-5 text-white bg-red-500 rounded hover:bg-red-600"
-              onClick={closeModal}
-            >
-              Close
-            </button>
           </div>
         </div>
       )}
