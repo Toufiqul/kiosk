@@ -9,6 +9,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { departmentOptions } from "@/lib/utils";
 
 interface Classroom {
   department: string;
@@ -22,11 +30,13 @@ interface ClassroomModalProps {
   onClose: () => void;
   onSave: (classroom: Classroom) => void;
 }
+async function handleAddClassroom(classroom: Classroom) {
+  console.log(classroom);
+}
 
 export const ClassroomModal: React.FC<ClassroomModalProps> = ({
   isOpen,
   onClose,
-  onSave,
 }) => {
   const [classroom, setClassroom] = useState<Classroom>({
     department: "",
@@ -45,7 +55,7 @@ export const ClassroomModal: React.FC<ClassroomModalProps> = ({
       alert("Please fill all fields.");
       return;
     }
-    onSave(classroom);
+    handleAddClassroom(classroom);
     onClose(); // Close modal after saving
   };
 
@@ -60,17 +70,22 @@ export const ClassroomModal: React.FC<ClassroomModalProps> = ({
           {/* Department */}
           <div>
             <Label>Department</Label>
-            <Input
-              type="text"
-              value={classroom.department}
-              onChange={(e) =>
-                setClassroom((prev) => ({
-                  ...prev,
-                  department: e.target.value,
-                }))
+            <Select
+              onValueChange={(value) =>
+                setClassroom((prev) => ({ ...prev, department: value }))
               }
-              placeholder="Enter Department"
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a Department" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(departmentOptions).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Tower */}
