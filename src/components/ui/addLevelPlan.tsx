@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { departmentOptions } from "@/lib/utils";
+import { supabase } from "../../client";
+import { v4 as uuidv4 } from "uuid";
 
 interface Classroom {
   department: string;
@@ -31,7 +33,38 @@ interface ClassroomModalProps {
   onSave: (classroom: Classroom) => void;
 }
 async function handleAddClassroom(classroom: Classroom) {
-  console.log(classroom);
+  try {
+    // Ensure department exists before updating
+    const { data: department, error: deptError } = await supabase
+      .from("departments")
+      .select("*")
+      .eq("id", classroom.department)
+      .single();
+
+    if (deptError || !department) {
+      console.error("Department not found:", deptError?.message);
+      return;
+    }
+
+    // Update the department row with the classroom details
+    const { error } = await supabase
+      .from("departments")
+      .update({
+        tower: classroom.tower,
+        floor: classroom.floor,
+        room_no: classroom.room_no,
+      })
+      .eq("id", classroom.department);
+
+    if (!error) {
+      console.log("Classroom details added to department successfully");
+      // You can call a function here to fetch updated data if needed
+    } else {
+      console.error("Error updating department:", error);
+    }
+  } catch (error) {
+    console.error("Unexpected error:", error);
+  }
 }
 
 export const ClassroomModal: React.FC<ClassroomModalProps> = ({
