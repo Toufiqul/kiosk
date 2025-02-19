@@ -11,6 +11,22 @@ import { useAuthStore } from "../state/auth";
 import { useNavigate } from "react-router-dom";
 import { departmentOptions } from "@/lib/utils";
 import { supabase } from "../client";
+import DepartmentModal from "@/components/ui/departmentModal";
+interface Department {
+  id: string;
+  name: string;
+  code: string;
+  created_at: string;
+  floor: string | null;
+  head_id: string | null;
+  location: string | null;
+  room_no: string | null;
+  tower: string | null;
+}
+
+interface Props {
+  departmentData: Record<string, Department>;
+}
 
 interface Department {
   id: string;
@@ -27,6 +43,8 @@ const CampusLayout = () => {
   const [selectedTower, setSelectedTower] = useState(null);
   const [map, setMap] = useState(null);
   const [departmentData, setDepartmentData] = useState<Department[]>([]);
+  const [selectedDepartment, setSelectedDepartment] =
+    useState<Department | null>(null);
 
   const closeModal = () => setActiveModal(null);
 
@@ -370,6 +388,7 @@ const CampusLayout = () => {
                 <div
                   key={key}
                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-between"
+                  onClick={() => setSelectedDepartment(value)}
                 >
                   <div className="flex items-center">
                     <GraduationCap className="h-5 w-5 text-blue-600 mr-3" />
@@ -393,6 +412,13 @@ const CampusLayout = () => {
                 </div>
               ))}
             </div>
+
+            {selectedDepartment && (
+              <DepartmentModal
+                department={selectedDepartment}
+                onClose={() => setSelectedDepartment(null)}
+              />
+            )}
           </div>
         </div>
       )}
