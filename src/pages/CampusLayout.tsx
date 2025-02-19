@@ -10,7 +10,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { useAuthStore } from "../state/auth";
 import { useNavigate } from "react-router-dom";
 import { departmentOptions } from "@/lib/utils";
+import { supabase } from "../client";
 
+interface Department {
+  id: string;
+  name: string;
+  // Add other department fields as needed
+}
 const CampusLayout = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const deAuthenticate = useAuthStore((state) => state.deAuthenticate);
@@ -20,6 +26,7 @@ const CampusLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedTower, setSelectedTower] = useState(null);
   const [map, setMap] = useState(null);
+  const [departmentData, setDepartmentData] = useState<Department[]>([]);
 
   const closeModal = () => setActiveModal(null);
 
@@ -27,7 +34,11 @@ const CampusLayout = () => {
     deAuthenticate();
     navigate("/");
   };
-
+  const fetchAllDepartmentData = async () => {
+    const { data, error } = await supabase.from("departments").select("*");
+    console.log(data);
+    if (!error && data) setDepartmentData(data);
+  };
   const towers = [
     {
       id: 1,
@@ -63,7 +74,7 @@ const CampusLayout = () => {
     script.defer = true;
     script.onload = initializeMap;
     document.head.appendChild(script);
-
+    fetchAllDepartmentData();
     return () => {
       document.head.removeChild(script);
     };
@@ -139,9 +150,6 @@ const CampusLayout = () => {
       });
     }
   };
-
-  const departments = ["CSE", "NSE", "ME", "EEE", "Civil", "Architecture"];
-
   const examNotices = [
     {
       id: 1,
@@ -358,14 +366,16 @@ const CampusLayout = () => {
               </button>
             </div>
             <div className="space-y-3">
-              {Object.entries(departmentOptions).map(([key, value]) => (
+              {Object.entries(departmentData).map(([key, value]) => (
                 <div
                   key={key}
                   className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer flex items-center justify-between"
                 >
                   <div className="flex items-center">
                     <GraduationCap className="h-5 w-5 text-blue-600 mr-3" />
-                    <span className="font-medium text-gray-900">{value}</span>
+                    <span className="font-medium text-gray-900">
+                      {value.name}
+                    </span>
                   </div>
                   <svg
                     className="h-5 w-5 text-gray-400"
