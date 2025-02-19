@@ -89,9 +89,9 @@ function AdminDashboard() {
   const [date, setDate] = useState<Date>(new Date());
 
   const [stats, setStats] = useState<DashboardStats>({
-    totalStudents: 2450,
+    totalStudents: 5300,
     totalFaculty: 120,
-    totalDepartments: 6,
+    totalDepartments: 13,
     activeExams: 8,
   });
 
@@ -147,6 +147,7 @@ function AdminDashboard() {
   const createExam = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      console.log(formData);
       const { error } = await supabase
         .from("exam_schedules")
         .insert({ id: uuidv4(), ...formData, examDate: date.toISOString() });
