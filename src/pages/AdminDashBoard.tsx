@@ -26,7 +26,10 @@ import {
   PencilRuler,
   Mail,
   Phone,
-  CalendarDays, Clock, MapPin, Bell
+  CalendarDays,
+  Clock,
+  MapPin,
+  Bell,
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -61,6 +64,7 @@ interface Exam {
   end_time: string;
 }
 interface Holiday {
+  id: string;
   start_date: string | null;
   end_date: string | null;
   occasion: string;
@@ -79,7 +83,6 @@ interface FormData {
   startTime: string;
   endTime: string;
 }
-
 
 interface DashboardStats {
   totalStudents: number;
@@ -100,7 +103,7 @@ function AdminDashboard() {
   const [holidayStartDate, setHolidayStartDate] = useState<Date>(new Date());
   const [holidayEndDate, setHolidayEndDate] = useState<Date>(new Date());
   const [holidayOccasion, setHolidayOcasion] = useState<string>("");
-
+  const [holidayData, setHolidayData] = useState<Holiday[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 5300,
     totalFaculty: 120,
@@ -132,6 +135,7 @@ function AdminDashboard() {
       fetchAllDepartmentData(),
       fetchAllNoticeData(),
       fetchAllExamData(),
+      fetchAllHolidayData(),
     ]);
   };
 
@@ -149,6 +153,11 @@ function AdminDashboard() {
     const { data, error } = await supabase.from("exam_schedules").select("*");
     if (!error && data) setExamData(data);
   };
+  const fetchAllHolidayData = async () => {
+    const { data, error } = await supabase.from("holidays").select("*");
+    console.log(data);
+    if (!error && data) setHolidayData(data);
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -162,14 +171,16 @@ function AdminDashboard() {
   const createHoliday = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
-        .from("holidays")
-        .insert({ start_date: holidayStartDate, end_date: holidayEndDate, occasion: holidayOccasion }); // Add other holiday fields as needed   
-      if (!error) { 
+      const { error } = await supabase.from("holidays").insert({
+        start_date: holidayStartDate,
+        end_date: holidayEndDate,
+        occasion: holidayOccasion,
+      }); // Add other holiday fields as needed
+      if (!error) {
         closeModal();
       }
     } catch (error) {
-      console.error(error);   
+      console.error(error);
     }
   };
 
@@ -177,9 +188,17 @@ function AdminDashboard() {
     e.preventDefault();
     console.log(formData);
     try {
-      const { error } = await supabase
-        .from("exam_schedules")
-        .insert({ id: uuidv4(), department_id: formData.department_id,exam_name: formData.examName, course_code: formData.courseCode, room_number: formData.roomNo, start_time: formData.startTime, end_time: formData.endTime, exam_date:date , created_by: "d352bd61-3242-4e72-ae4d-ccd1c527aa95" });
+      const { error } = await supabase.from("exam_schedules").insert({
+        id: uuidv4(),
+        department_id: formData.department_id,
+        exam_name: formData.examName,
+        course_code: formData.courseCode,
+        room_number: formData.roomNo,
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+        exam_date: date,
+        created_by: "d352bd61-3242-4e72-ae4d-ccd1c527aa95",
+      });
 
       if (!error) {
         fetchAllExamData();
@@ -193,9 +212,15 @@ function AdminDashboard() {
   const createNotice = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
-        .from("notices")
-        .insert({ id: uuidv4(), title: formData.title, content: formData.content, notice_type: formData.notice_type, department_id: formData.department_id, published_by: formData.published_by, published_at: formData.published_at });
+      const { error } = await supabase.from("notices").insert({
+        id: uuidv4(),
+        title: formData.title,
+        content: formData.content,
+        notice_type: formData.notice_type,
+        department_id: formData.department_id,
+        published_by: formData.published_by,
+        published_at: formData.published_at,
+      });
 
       if (!error) {
         fetchAllNoticeData();
@@ -390,98 +415,133 @@ function AdminDashboard() {
 
         {/* Recent Activity */}
         <section className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-      <header className="border-b border-gray-200 pb-4 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <Bell className="w-5 h-5 text-blue-600" />
-          Recent Notices
-        </h2>
-      </header>
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <header className="border-b border-gray-200 pb-4 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-blue-600" />
+                Recent Notices
+              </h2>
+            </header>
 
-      <div className="space-y-6">
-        {noticeData.slice(0, 5).map((notice) => (
-          <div 
-            key={notice.id} 
-            className="group border border-gray-100 rounded-md p-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="font-medium text-lg text-gray-900 group-hover:text-blue-600 transition-colors">
-                {notice.title}
-              </h3>
-              {notice.published_at && (
-                <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  {format(new Date(notice.published_at), "PPP")}
-                </div>
-              )}
-            </div>
-            
-            <div className="text-gray-600 leading-relaxed">
-              {notice.content}
-            </div>
-
-            {notice.notice_type && (
-              <div className="flex gap-2 mt-3">
-                {notice.notice_type && (
-                  <div 
-                    className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                  >
-                    {notice.notice_type}
+            <div className="space-y-6">
+              {noticeData.slice(0, 5).map((notice) => (
+                <div
+                  key={notice.id}
+                  className="group border border-gray-100 rounded-md p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium text-lg text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {notice.title}
+                    </h3>
+                    {notice.published_at && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {format(new Date(notice.published_at), "PPP")}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
+
+                  <div className="text-gray-600 leading-relaxed">
+                    {notice.content}
+                  </div>
+
+                  {notice.notice_type && (
+                    <div className="flex gap-2 mt-3">
+                      {notice.notice_type && (
+                        <div className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                          {notice.notice_type}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6">
-      <header className="border-b border-gray-200 pb-4 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <CalendarDays className="w-5 h-5 text-blue-600" />
-          Upcoming Exams
-        </h2>
-      </header>
+            <header className="border-b border-gray-200 pb-4 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-blue-600" />
+                Upcoming Exams
+              </h2>
+            </header>
 
-      <div className="space-y-6">
-        {examData.slice(0, 5).map((exam) => (
-          <div 
-            key={exam.id} 
-            className="border border-gray-100 rounded-md p-4 hover:bg-gray-50 transition-colors"
-          >
-            <h3 className="font-medium text-lg text-gray-900 mb-2">
-              {exam.exam_name}
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-2 text-gray-600">
-                <div className="font-medium w-24">Course Code:</div>
-                <div>{exam.course_code}</div>
-              </div>
+            <div className="space-y-6">
+              {examData.slice(0, 5).map((exam) => (
+                <div
+                  key={exam.id}
+                  className="border border-gray-100 rounded-md p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <h3 className="font-medium text-lg text-gray-900 mb-2">
+                    {exam.exam_name}
+                  </h3>
 
-              <div className="flex items-center gap-2 text-gray-600">
-                <MapPin className="w-4 h-4" />
-                <div className="font-medium">Room:</div>
-                <div>{exam.room_number}</div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <div className="font-medium w-24">Course Code:</div>
+                      <div>{exam.course_code}</div>
+                    </div>
 
-              <div className="flex items-center gap-2 text-gray-600">
-                <CalendarDays className="w-4 h-4" />
-                <div className="font-medium">Date:</div>
-                <div>{exam.exam_date}</div>
-              </div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <div className="font-medium">Room:</div>
+                      <div>{exam.room_number}</div>
+                    </div>
 
-              <div className="flex items-center gap-2 text-gray-600">
-                <Clock className="w-4 h-4" />
-                <div className="font-medium">Time:</div>
-                <div>{exam.start_time} - {exam.end_time}</div>
-              </div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <CalendarDays className="w-4 h-4" />
+                      <div className="font-medium">Date:</div>
+                      <div>{exam.exam_date}</div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Clock className="w-4 h-4" />
+                      <div className="font-medium">Time:</div>
+                      <div>
+                        {exam.start_time} - {exam.end_time}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <header className="border-b border-gray-200 pb-4 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-green-600" />
+                Upcoming Holidays
+              </h2>
+            </header>
+
+            <div className="space-y-6">
+              {holidayData.map((holiday) => (
+                <div
+                  key={holiday.id}
+                  className="border border-gray-100 rounded-md p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <h3 className="font-medium text-lg text-gray-900 mb-2">
+                    {holiday.occasion}
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <CalendarDays className="w-4 h-4" />
+                      <div className="font-medium">Start Date:</div>
+                      <div>{format(holiday.start_date, "PPP")}</div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <CalendarDays className="w-4 h-4" />
+                      <div className="font-medium">End Date:</div>
+                      <div>{format(holiday.end_date, "PPP")}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
       </main>
 
@@ -495,7 +555,6 @@ function AdminDashboard() {
       </footer>
 
       {/* Modals */}
-      
 
       <ClassroomModal
         isOpen={activeModal === "levelPlan"}
@@ -511,8 +570,7 @@ function AdminDashboard() {
       /> */}
 
       {/* Holiday Modal */}
-      {activeModal === "holidays" && (        
-
+      {activeModal === "holidays" && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
             <div className="p-6">
@@ -537,9 +595,7 @@ function AdminDashboard() {
                     type="text"
                     name="occasion"
                     value={holidayOccasion}
-                    onChange={(e) =>
-                      setHolidayOcasion(e.target.value)
-                    }
+                    onChange={(e) => setHolidayOcasion(e.target.value)}
                     className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter occasion"
                   />
@@ -559,7 +615,11 @@ function AdminDashboard() {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {holidayStartDate ? format(holidayStartDate, "PPP") : <span>Pick a date</span>}
+                        {holidayStartDate ? (
+                          format(holidayStartDate, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -587,7 +647,11 @@ function AdminDashboard() {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {holidayEndDate ? format(holidayEndDate, "PPP") : <span>Pick a date</span>}
+                        {holidayEndDate ? (
+                          format(holidayEndDate, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -599,7 +663,7 @@ function AdminDashboard() {
                       />
                     </PopoverContent>
                   </Popover>
-                </div>  
+                </div>
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="submit"
