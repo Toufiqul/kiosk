@@ -47,19 +47,19 @@ export const HolidayModal: React.FC<HolidayModalProps> = ({
       alert("Please fill all fields.");
       return;
     }
-    console.log("Holiday Details:", {
-      ...holiday,
-      start_date: format(holiday.start_date, "yyyy-MM-dd"),
-      end_date: format(holiday.end_date, "yyyy-MM-dd"),
-    });
 
-    onSave(holiday);
+    onSave({
+      ...holiday,
+      start_date: holiday.start_date,
+      end_date: holiday.end_date,
+    });
+    
     setHoliday({ start_date: null, end_date: null, occasion: "" }); // Reset fields
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="p-6 rounded-lg bg-white">
         <DialogHeader>
           <DialogTitle>Add Holiday</DialogTitle>
@@ -88,11 +88,9 @@ export const HolidayModal: React.FC<HolidayModalProps> = ({
                 <CalendarComponent
                   mode="single"
                   selected={holiday.start_date || undefined}
-                  onSelect={(date) => {
-                    if (date) {
-                      setHoliday((prev) => ({ ...prev, start_date: date }));
-                    }
-                  }}
+                  onSelect={(date) =>
+                    setHoliday((prev) => ({ ...prev, start_date: date }))
+                  }
                   initialFocus
                 />
               </PopoverContent>
@@ -122,10 +120,7 @@ export const HolidayModal: React.FC<HolidayModalProps> = ({
                   mode="single"
                   selected={holiday.end_date || undefined}
                   onSelect={(date) =>
-                    setHoliday((prev) => ({
-                      ...prev,
-                      start_date: date ?? null,
-                    }))
+                    setHoliday((prev) => ({ ...prev, end_date: date }))
                   }
                   initialFocus
                 />

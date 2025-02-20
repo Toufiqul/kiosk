@@ -8,7 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
   Calendar as CalendarIcon,
@@ -26,11 +26,13 @@ import {
   PencilRuler,
   Mail,
   Phone,
+  CalendarDays, Clock, MapPin, Bell
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import HolidayModal from "@/components/ui/addHolidayModal";
 import { ClassroomModal } from "@/components/ui/addLevelPlan";
+import { title } from "process";
 
 // Types
 interface Department {
@@ -51,11 +53,12 @@ interface Notice {
 
 interface Exam {
   id: string;
-  examName: string;
-  subject: string;
-  department_id: string;
-  sec: string;
-  examDate: string;
+  exam_name: string;
+  course_code: string;
+  room_number: string;
+  exam_date: string;
+  start_time: string;
+  end_time: string;
 }
 interface Holiday {
   start_date: string | null;
@@ -71,9 +74,12 @@ interface FormData {
   published_at: Date;
   examDate: string;
   examName: string;
-  subject: string;
-  sec: string;
+  courseCode: string;
+  roomNo: string;
+  startTime: string;
+  endTime: string;
 }
+
 
 interface DashboardStats {
   totalStudents: number;
@@ -91,6 +97,9 @@ function AdminDashboard() {
   const [noticeData, setNoticeData] = useState<Notice[]>([]);
   const [examData, setExamData] = useState<Exam[]>([]);
   const [date, setDate] = useState<Date>(new Date());
+  const [holidayStartDate, setHolidayStartDate] = useState<Date>(new Date());
+  const [holidayEndDate, setHolidayEndDate] = useState<Date>(new Date());
+  const [holidayOccasion, setHolidayOcasion] = useState<string>("");
 
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 5300,
@@ -108,8 +117,10 @@ function AdminDashboard() {
     published_at: new Date(),
     examDate: "",
     examName: "",
-    subject: "",
-    sec: "",
+    courseCode: "",
+    roomNo: "",
+    startTime: Date.now().toString(),
+    endTime: Date.now().toString(),
   });
 
   useEffect(() => {
@@ -148,21 +159,35 @@ function AdminDashboard() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const createHoliday = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { error } = await supabase
+        .from("holidays")
+        .insert({ start_date: holidayStartDate, end_date: holidayEndDate, occasion: holidayOccasion }); // Add other holiday fields as needed   
+      if (!error) { 
+        closeModal();
+      }
+    } catch (error) {
+      console.error(error);   
+    }
+  };
+
   const createExam = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log(formData);
-    // try {
-    //   const { error } = await supabase
-    //     .from("exam_schedules")
-    //     .insert({ id: uuidv4(), ...formData, examDate: date.toISOString() });
+    try {
+      const { error } = await supabase
+        .from("exam_schedules")
+        .insert({ id: uuidv4(), department_id: formData.department_id,exam_name: formData.examName, course_code: formData.courseCode, room_number: formData.roomNo, start_time: formData.startTime, end_time: formData.endTime, exam_date:date , created_by: "d352bd61-3242-4e72-ae4d-ccd1c527aa95" });
 
-    //   if (!error) {
-    //     fetchAllExamData();
-    //     closeModal();
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // }
+      if (!error) {
+        fetchAllExamData();
+        closeModal();
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const createNotice = async (e: React.FormEvent) => {
@@ -170,7 +195,7 @@ function AdminDashboard() {
     try {
       const { error } = await supabase
         .from("notices")
-        .insert({ id: uuidv4(), ...formData });
+        .insert({ id: uuidv4(), title: formData.title, content: formData.content, notice_type: formData.notice_type, department_id: formData.department_id, published_by: formData.published_by, published_at: formData.published_at });
 
       if (!error) {
         fetchAllNoticeData();
@@ -193,8 +218,10 @@ function AdminDashboard() {
       published_at: new Date(),
       examDate: "",
       examName: "",
-      subject: "",
-      sec: "",
+      courseCode: "",
+      roomNo: "",
+      startTime: Date.now().toString(),
+      endTime: Date.now().toString(),
     });
   };
   const [holidays, setHolidays] = useState<Holiday[]>([]);
@@ -363,35 +390,98 @@ function AdminDashboard() {
 
         {/* Recent Activity */}
         <section className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 underline">
-              Recent Notices
-            </h2>
-            <div className="space-y-4">
-              {noticeData.slice(0, 5).map((notice) => (
-                <div key={notice.id} className="border-b pb-4">
-                  <h3 className="font-medium text-gray-900">{notice.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{notice.content}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="bg-white rounded-lg shadow-lg p-6">
+      <header className="border-b border-gray-200 pb-4 mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+          <Bell className="w-5 h-5 text-blue-600" />
+          Recent Notices
+        </h2>
+      </header>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 underline">
-              Upcoming Exams
-            </h2>
-            <div className="space-y-4">
-              {examData.slice(0, 5).map((exam) => (
-                <div key={exam.id} className="border-b pb-4">
-                  <h3 className="font-medium text-gray-900">{exam.examName}</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {exam.subject} - Section {exam.sec}
-                  </p>
+      <div className="space-y-6">
+        {noticeData.slice(0, 5).map((notice) => (
+          <div 
+            key={notice.id} 
+            className="group border border-gray-100 rounded-md p-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-medium text-lg text-gray-900 group-hover:text-blue-600 transition-colors">
+                {notice.title}
+              </h3>
+              {notice.published_at && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  {format(new Date(notice.published_at), "PPP")}
                 </div>
-              ))}
+              )}
+            </div>
+            
+            <div className="text-gray-600 leading-relaxed">
+              {notice.content}
+            </div>
+
+            {notice.notice_type && (
+              <div className="flex gap-2 mt-3">
+                {notice.notice_type && (
+                  <div 
+                    className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
+                  >
+                    {notice.notice_type}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+      <header className="border-b border-gray-200 pb-4 mb-6">
+        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+          <CalendarDays className="w-5 h-5 text-blue-600" />
+          Upcoming Exams
+        </h2>
+      </header>
+
+      <div className="space-y-6">
+        {examData.slice(0, 5).map((exam) => (
+          <div 
+            key={exam.id} 
+            className="border border-gray-100 rounded-md p-4 hover:bg-gray-50 transition-colors"
+          >
+            <h3 className="font-medium text-lg text-gray-900 mb-2">
+              {exam.exam_name}
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-2 text-gray-600">
+                <div className="font-medium w-24">Course Code:</div>
+                <div>{exam.course_code}</div>
+              </div>
+
+              <div className="flex items-center gap-2 text-gray-600">
+                <MapPin className="w-4 h-4" />
+                <div className="font-medium">Room:</div>
+                <div>{exam.room_number}</div>
+              </div>
+
+              <div className="flex items-center gap-2 text-gray-600">
+                <CalendarDays className="w-4 h-4" />
+                <div className="font-medium">Date:</div>
+                <div>{exam.exam_date}</div>
+              </div>
+
+              <div className="flex items-center gap-2 text-gray-600">
+                <Clock className="w-4 h-4" />
+                <div className="font-medium">Time:</div>
+                <div>{exam.start_time} - {exam.end_time}</div>
+              </div>
             </div>
           </div>
+        ))}
+      </div>
+    </div>
         </section>
       </main>
 
@@ -405,17 +495,132 @@ function AdminDashboard() {
       </footer>
 
       {/* Modals */}
-      <HolidayModal
-        isOpen={activeModal === "holidays"}
-        onClose={() => setActiveModal(null)}
-        onSave={handleSaveHoliday}
-      />
+      
 
       <ClassroomModal
         isOpen={activeModal === "levelPlan"}
         onClose={() => setActiveModal(null)}
         onSave={handleSave}
       />
+
+      {/* Holiday Modal */}
+      {/* <HolidayModal     
+        isOpen={activeModal === "holidays"}
+        onClose={() => setActiveModal(null)}
+        onSave={handleSaveHoliday}          
+      /> */}
+
+      {/* Holiday Modal */}
+      {activeModal === "holidays" && (        
+
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Add New Holiday
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <form onSubmit={createNotice} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Occasion
+                  </label>
+                  <input
+                    type="text"
+                    name="occasion"
+                    value={holidayOccasion}
+                    onChange={(e) =>
+                      setHolidayOcasion(e.target.value)
+                    }
+                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter occasion"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Date
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !holidayStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {holidayStartDate ? format(holidayStartDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={holidayStartDate}
+                        onSelect={setHolidayStartDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !holidayEndDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {holidayEndDate ? format(holidayEndDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={holidayEndDate}
+                        onSelect={setHolidayEndDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>  
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    onClick={createHoliday}
+                    className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Add Holiday
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Exam Modal */}
       {activeModal === "exam" && (
@@ -451,12 +656,12 @@ function AdminDashboard() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Subject
+                    Course Code
                   </label>
                   <input
                     type="text"
-                    name="subject"
-                    value={formData.subject}
+                    name="courseCode"
+                    value={formData.courseCode}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter subject"
@@ -465,12 +670,12 @@ function AdminDashboard() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Section
+                    Room No
                   </label>
                   <input
                     type="text"
-                    name="sec"
-                    value={formData.sec}
+                    name="roomNo"
+                    value={formData.roomNo}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter section"
@@ -479,7 +684,35 @@ function AdminDashboard() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date
+                    Start Time
+                  </label>
+                  <input
+                    type="time"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter start time"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Time
+                  </label>
+                  <input
+                    type="time"
+                    name="endTime"
+                    value={formData.endTime}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter end time"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Exam Date
                   </label>
                   <Popover>
                     <PopoverTrigger asChild>
