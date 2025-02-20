@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { HolidayModal } from "@/components/ui/addHolidayModal";
+import HolidayModal from "@/components/ui/addHolidayModal";
 import { ClassroomModal } from "@/components/ui/addLevelPlan";
 
 // Types
@@ -57,7 +57,11 @@ interface Exam {
   sec: string;
   examDate: string;
 }
-
+interface Holiday {
+  start_date: string | null;
+  end_date: string | null;
+  occasion: string;
+}
 interface FormData {
   title: string;
   content: string;
@@ -146,19 +150,19 @@ function AdminDashboard() {
 
   const createExam = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      console.log(formData);
-      const { error } = await supabase
-        .from("exam_schedules")
-        .insert({ id: uuidv4(), ...formData, examDate: date.toISOString() });
+    console.log(formData);
+    // try {
+    //   const { error } = await supabase
+    //     .from("exam_schedules")
+    //     .insert({ id: uuidv4(), ...formData, examDate: date.toISOString() });
 
-      if (!error) {
-        fetchAllExamData();
-        closeModal();
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    //   if (!error) {
+    //     fetchAllExamData();
+    //     closeModal();
+    //   }
+    // } catch (error) {
+    //   console.error(error);
+    // }
   };
 
   const createNotice = async (e: React.FormEvent) => {
@@ -193,7 +197,16 @@ function AdminDashboard() {
       sec: "",
     });
   };
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
 
+  const handleSaveHoliday = (holiday: {
+    start_date: string | null;
+    end_date: string | null;
+    occasion: string;
+  }) => {
+    console.log("Saved Holiday:", holiday); // Logs the holiday data
+    setHolidays([...holidays, holiday]);
+  };
   const handleSave = (holiday: {
     start_date: string | null;
     end_date: string | null;
@@ -395,7 +408,7 @@ function AdminDashboard() {
       <HolidayModal
         isOpen={activeModal === "holidays"}
         onClose={() => setActiveModal(null)}
-        onSave={handleSave}
+        onSave={handleSaveHoliday}
       />
 
       <ClassroomModal
@@ -495,6 +508,7 @@ function AdminDashboard() {
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="submit"
+                    onClick={createExam}
                     className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     Create Exam

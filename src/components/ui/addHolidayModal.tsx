@@ -9,12 +9,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar"; // Assuming you have a Calendar component
 import { format } from "date-fns";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 interface Holiday {
-  start_date: string | null;
-  end_date: string | null;
+  start_date: Date | null;
+  end_date: Date | null;
   occasion: string;
 }
 
@@ -40,12 +47,19 @@ export const HolidayModal: React.FC<HolidayModalProps> = ({
       alert("Please fill all fields.");
       return;
     }
+    console.log("Holiday Details:", {
+      ...holiday,
+      start_date: format(holiday.start_date, "yyyy-MM-dd"),
+      end_date: format(holiday.end_date, "yyyy-MM-dd"),
+    });
+
     onSave(holiday);
-    onClose(); // Close modal after saving
+    setHoliday({ start_date: null, end_date: null, occasion: "" }); // Reset fields
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="p-6 rounded-lg bg-white">
         <DialogHeader>
           <DialogTitle>Add Holiday</DialogTitle>
@@ -55,33 +69,68 @@ export const HolidayModal: React.FC<HolidayModalProps> = ({
           {/* Start Date */}
           <div>
             <Label>Start Date</Label>
-            <Calendar
-              selected={
-                holiday.start_date ? new Date(holiday.start_date) : undefined
-              }
-              onSelect={(date) =>
-                setHoliday((prev) => ({
-                  ...prev,
-                  start_date: date ? format(date, "yyyy-MM-dd") : null,
-                }))
-              }
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !holiday.start_date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {holiday.start_date
+                    ? format(holiday.start_date, "PPP")
+                    : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <CalendarComponent
+                  mode="single"
+                  selected={holiday.start_date || undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      setHoliday((prev) => ({ ...prev, start_date: date }));
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* End Date */}
           <div>
             <Label>End Date</Label>
-            <Calendar
-              selected={
-                holiday.end_date ? new Date(holiday.end_date) : undefined
-              }
-              onSelect={(date) =>
-                setHoliday((prev) => ({
-                  ...prev,
-                  end_date: date ? format(date, "yyyy-MM-dd") : null,
-                }))
-              }
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !holiday.end_date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {holiday.end_date
+                    ? format(holiday.end_date, "PPP")
+                    : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <CalendarComponent
+                  mode="single"
+                  selected={holiday.end_date || undefined}
+                  onSelect={(date) =>
+                    setHoliday((prev) => ({
+                      ...prev,
+                      start_date: date ?? null,
+                    }))
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Occasion */}
@@ -108,3 +157,5 @@ export const HolidayModal: React.FC<HolidayModalProps> = ({
     </Dialog>
   );
 };
+
+export default HolidayModal;
