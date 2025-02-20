@@ -24,7 +24,7 @@ function Home() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      // navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
@@ -90,11 +90,13 @@ function Home() {
         .eq("email", email);
       
       if (data && data?.length === 1) {
-        if (data[0].password === password) {
+        if(data[0].role === activeModal && password === data[0].password){
           authenticateWith("token");
           closeModal();
-          navigate("/dashboard");
-        } else {
+          if(activeModal === "student") navigate("/dashboard");
+          else navigate("/admin");
+        }
+         else {
           setError("Email or password is incorrect");
         }
       } else {
@@ -104,6 +106,8 @@ function Home() {
       console.error(error);
     }
   };
+
+        
 
   const closeModal = () => {
     setActiveModal(null);
