@@ -28,6 +28,59 @@ function Home() {
     }
   }, [isAuthenticated, navigate]);
 
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
+
+      if (signUpError) throw signUpError;
+
+      if (signUpData && signUpData.user) {
+        const { error: insertError } = await supabase.from("users").insert([
+          {
+            id: signUpData.user.id,
+            email: formData.email,
+            student_id: formData.id,
+            // department: formData.department,
+            // section: formData.section,
+            role: formData.role,
+            password: formData.password,
+          },
+        ]);
+
+        if (insertError) throw insertError;
+        authenticateWith("token");
+        closeModal();
+        navigate("/dashboard");
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred during signup");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const handleLogin = async () => {
     setError(null);
     try {
@@ -204,6 +257,14 @@ function Home() {
           <div className="bg-white rounded-lg w-full max-w-md p-6">
             <h2 className="text-xl font-bold text-center mb-6">Create Account</h2>
             <form className="space-y-4">
+              
+              <input
+                type="text"
+                placeholder="Student ID"
+                className="w-full p-2 border rounded"
+                value={formData.id}
+                onChange={(e) => setFormData({...formData, id: e.target.value})}
+              />
               <input
                 type="email"
                 placeholder="Email"
@@ -231,7 +292,7 @@ function Home() {
                 onChange={(e) => setFormData({...formData, role: e.target.value})}
               >
                 <option value="student">Student</option>
-                <option value="admin">Admin</option>
+                
               </select>
               {error && (
                 <div className="bg-red-50 text-red-500 text-sm p-3 rounded">
@@ -242,6 +303,7 @@ function Home() {
                 <button
                   type="submit"
                   className="flex-1 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
+                  onClick={handleSignup}
                 >
                   Sign Up
                 </button>
