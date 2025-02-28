@@ -1,11 +1,21 @@
 import * as React from "react";
+import { useEffect, useState } from "react";
+
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
+import { supabase } from "../../client";
+import { format } from "date-fns";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+interface Holiday {
+  id: string;
+  start_date: string | null;
+  end_date: string | null;
+  occasion: string;
+}
 
 function Calendar({
   className,
@@ -13,6 +23,28 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const [holidayData, setHolidayData] = useState<Holiday[]>([]);
+
+  const fetchAllData = async () => {
+    await Promise.all([fetchAllHolidayData()]);
+  };
+
+  const fetchAllHolidayData = async () => {
+    const { data, error } = await supabase.from("holidays").select("*");
+    if (!error && data) setHolidayData(data);
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  // Convert holiday start dates into Date objects
+  const holidayDates = holidayData
+    .map((holiday) =>
+      holiday.start_date ? new Date(holiday.start_date) : null
+    )
+    .filter(Boolean) as Date[];
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -61,9 +93,15 @@ function Calendar({
           const day = date.getDay();
           return day === 5 || day === 6; // Friday (5) & Saturday (6)
         },
+        holiday: (date) =>
+          holidayDates.some(
+            (holidayDate) =>
+              format(holidayDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
+          ),
       }}
       modifiersClassNames={{
-        weekend: "bg-red-200 text-red-800", // Apply Tailwind styles directly
+        weekend: "bg-red-200 text-red-800", // Weekend styling
+        holiday: "bg-green-300 text-green-900 font-bold", // Holiday styling
       }}
       components={{
         IconLeft: ({ className, ...props }) => (
