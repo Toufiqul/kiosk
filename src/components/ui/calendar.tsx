@@ -139,9 +139,11 @@ function Calendar({
           open={!!selectedHoliday}
           onOpenChange={() => setSelectedHoliday(null)}
         >
-          <DialogContent>
-            <DialogTitle>{selectedHoliday.occasion}</DialogTitle>
-            <p>
+          <DialogContent className="w-60 h-60 bg-white rounded-2xl shadow-xl p-6 flex flex-col justify-center items-center space-y-4">
+            <DialogTitle className="text-lg font-semibold text-gray-900 text-center">
+              Occassion: {selectedHoliday.occasion}
+            </DialogTitle>
+            <p className="text-gray-800 text-m text-center">
               Date:{" "}
               {format(new Date(selectedHoliday.start_date!), "dd MMMM yyyy")}
             </p>
