@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useAuthStore } from "../state/auth";
+import { useModalStore } from "@/state/modalState";
 import { useNavigate } from "react-router-dom";
 import { departmentOptions } from "@/lib/utils";
 import { supabase } from "../client";
@@ -40,7 +41,9 @@ const CampusLayout = () => {
   const deAuthenticate = useAuthStore((state) => state.deAuthenticate);
   const navigate = useNavigate();
   const [date, setDate] = React.useState(new Date());
-  const [activeModal, setActiveModal] = useState(null);
+  const { activeModal, setActiveModal } = useModalStore();
+
+  //   const [activeModal, setActiveModal] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedTower, setSelectedTower] = useState(null);
   const [map, setMap] = useState(null);
@@ -64,8 +67,12 @@ const CampusLayout = () => {
 
   const fetchAllExamAndNoticeData = async () => {
     // Fetch exam schedules and notices
-    const {data: examData, error: examError} = await supabase.from("exam_schedules").select("*");
-    const {data: noticeData, error: noticeError} = await supabase.from("notices").select("*");
+    const { data: examData, error: examError } = await supabase
+      .from("exam_schedules")
+      .select("*");
+    const { data: noticeData, error: noticeError } = await supabase
+      .from("notices")
+      .select("*");
     if (examError || noticeError) {
       console.error("Error fetching exam and notice data");
       return;
@@ -73,7 +80,9 @@ const CampusLayout = () => {
     // combine bothexamData and noticeData add a type field to differentiate between them
     const combinedData = [
       ...(examData ? examData.map((exam) => ({ ...exam, type: "exam" })) : []),
-      ...(noticeData ? noticeData.map((notice) => ({ ...notice, type: "notice" })) : [])
+      ...(noticeData
+        ? noticeData.map((notice) => ({ ...notice, type: "notice" }))
+        : []),
     ];
 
     setCombinedData(combinedData);
@@ -445,46 +454,49 @@ const CampusLayout = () => {
         </div>
       )}
 
-{//show exam and notice data check the type first
-}
-  {activeModal === "exam" && (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full p-6">
-    <div className="flex justify-between items-center mb-6">
-      <h2 className="text-2xl font-semibold text-gray-900">
-        Examination Notices
-      </h2>
-      <button
-        onClick={closeModal}
-        className="text-gray-400 hover:text-gray-500"
-      >
-        <X className="h-6 w-6" />
-      </button>
-    </div>
-    <div className="space-y-4">
-      {combinedData.map((item) => (
-        <div
-      key={item.id}
-      className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow"
-        >
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-lg font-medium text-gray-900">
-        {item.type === "exam" ? item.exam_name : item.title}
-        </h3>
-        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-          {item.type === "exam" ? new Date(item.exam_date).toLocaleDateString(): new Date(item.published_at).toLocaleDateString()}
-        </span>
-      </div>
-      <p className="text-gray-600">{item.description}</p>
-      <span className="text-xs text-gray-500">
-        {item.type === "exam" ? "Exam Schedule" : "Notice"}
-      </span>
+      {
+        //show exam and notice data check the type first
+      }
+      {activeModal === "exam" && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900">
+                Examination Notices
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              {combinedData.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {item.type === "exam" ? item.exam_name : item.title}
+                    </h3>
+                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {item.type === "exam"
+                        ? new Date(item.exam_date).toLocaleDateString()
+                        : new Date(item.published_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-gray-600">{item.description}</p>
+                  <span className="text-xs text-gray-500">
+                    {item.type === "exam" ? "Exam Schedule" : "Notice"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      ))}
-    </div>
-      </div>
-    </div>
-  )}
+      )}
 
       {activeModal === "calendar" && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">

@@ -233,6 +233,7 @@ function AdminDashboard() {
 
   const closeModal = () => {
     setActiveModal(null);
+
     setError(null);
     setFormData({
       title: "",

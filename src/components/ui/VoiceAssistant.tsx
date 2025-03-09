@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Mic, MicOff } from "lucide-react";
 import { useVoiceToText } from "react-speakup";
 import { useNavigate } from "react-router-dom";
+import { useModalStore } from "@/state/modalState";
 
 const VoiceAssistant = () => {
   const navigate = useNavigate(); // React Router's navigation hook
-
+  const { activeModal, setActiveModal } = useModalStore();
   const { startListening, stopListening, transcript, reset } = useVoiceToText({
     continuous: true, //if its true, it'll stop listening manually, otherwise it stop listening anytime the speech will finished
     lang: "en-US",
@@ -25,6 +26,14 @@ const VoiceAssistant = () => {
       navigate("/notice");
     } else if (command.toLowerCase().includes("test")) {
       navigate("/test");
+    } else if (command.toLowerCase().includes("close")) {
+      setActiveModal(null);
+    } else if (command.toLowerCase().includes("department")) {
+      setActiveModal("dept");
+    } else if (command.toLowerCase().includes("exam")) {
+      setActiveModal("exam");
+    } else if (command.toLowerCase().includes("calendar")) {
+      setActiveModal("calendar");
     } else {
       console.log("Unrecognized command:", command);
     }
