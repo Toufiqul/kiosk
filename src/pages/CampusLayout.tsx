@@ -5,16 +5,18 @@ import {
   Calendar as CalendarIcon,
   Menu,
   X,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  MapPin,
+  Clock,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useAuthStore } from "../state/auth";
 import { useModalStore } from "@/state/modalState";
 import { useNavigate } from "react-router-dom";
-import { departmentOptions } from "@/lib/utils";
 import { supabase } from "../client";
 import DepartmentModal from "@/components/ui/departmentModal";
-import { text } from "stream/consumers";
-import { set } from "date-fns";
 interface Department {
   id: string;
   name: string;
@@ -26,15 +28,27 @@ interface Department {
   room_no: string | null;
   tower: string | null;
 }
-
-interface Props {
-  departmentData: Record<string, Department>;
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  interested_count: number;
+  created_at: string;
+  color_gradient: string;
 }
-
 interface Department {
   id: string;
   name: string;
   // Add other department fields as needed
+}
+
+declare global {
+  interface Window {
+    google: any;
+  }
 }
 const CampusLayout = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -45,7 +59,14 @@ const CampusLayout = () => {
 
   //   const [activeModal, setActiveModal] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [selectedTower, setSelectedTower] = useState(null);
+  interface Tower {
+    id: number;
+    name: string;
+    position: { lat: number; lng: number };
+    info: string;
+  }
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedTower, setSelectedTower] = useState<Tower | null>(null);
   const [map, setMap] = useState(null);
   const [departmentData, setDepartmentData] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] =
@@ -63,6 +84,24 @@ const CampusLayout = () => {
     const { data, error } = await supabase.from("departments").select("*");
     console.log(data);
     if (!error && data) setDepartmentData(data);
+  };
+
+  // ADD THIS FUNCTION AFTER fetchAllExamAndNoticeData
+  const fetchAllEventData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("date", { ascending: true });
+
+      if (!error && data) {
+        setEvents(data);
+      } else {
+        console.error("Error fetching events:", error);
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
   };
 
   const fetchAllExamAndNoticeData = async () => {
@@ -124,6 +163,7 @@ const CampusLayout = () => {
     document.head.appendChild(script);
     fetchAllDepartmentData();
     fetchAllExamAndNoticeData();
+    fetchAllEventData();
     return () => {
       document.head.removeChild(script);
     };
@@ -199,22 +239,88 @@ const CampusLayout = () => {
       });
     }
   };
-  const examNotices = [
-    {
-      id: 1,
-      title: "Mid Term Examination Schedule - Spring 2025",
-      date: "2025-02-15",
-      description:
-        "Mid term examinations for all departments will commence from March 1st, 2025",
-    },
-    {
-      id: 2,
-      title: "Final Term Examination Notice",
-      date: "2025-03-20",
-      description:
-        "Final examinations schedule will be published by end of March",
-    },
-  ];
+  const [activeEventIndex, setActiveEventIndex] = useState(0);
+  const [participatingEvents, setParticipatingEvents] = useState<string[]>([]);
+  // Add these functions to the component
+  const nextEvent = () => {
+    setActiveEventIndex((prevIndex) =>
+      prevIndex === events.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevEvent = () => {
+    setActiveEventIndex((prevIndex) =>
+      prevIndex === 0 ? events.length - 1 : prevIndex - 1
+    );
+  };
+
+  const toggleParticipation = async (eventId: string) => {
+    if (participatingEvents.includes(eventId)) {
+      // Remove participation
+      setParticipatingEvents(
+        participatingEvents.filter((id) => id !== eventId)
+      );
+
+      // Update the event's interested count in local state
+      setEvents(
+        events.map((event) =>
+          event.id === eventId
+            ? { ...event, interested_count: event.interested_count - 1 }
+            : event
+        )
+      );
+
+      // Optional: Update in Supabase
+      try {
+        const event = events.find((e) => e.id === eventId);
+        if (event) {
+          await supabase
+            .from("events")
+            .update({ interested_count: event.interested_count - 1 })
+            .eq("id", eventId);
+        }
+      } catch (error) {
+        console.error("Error updating event participation:", error);
+      }
+    } else {
+      // Add participation
+      setParticipatingEvents([...participatingEvents, eventId]);
+
+      // Update the event's interested count in local state
+      setEvents(
+        events.map((event) =>
+          event.id === eventId
+            ? { ...event, interested_count: event.interested_count + 1 }
+            : event
+        )
+      );
+
+      // Optional: Update in Supabase
+      try {
+        const event = events.find((e) => e.id === eventId);
+        if (event) {
+          await supabase
+            .from("events")
+            .update({ interested_count: event.interested_count + 1 })
+            .eq("id", eventId);
+        }
+      } catch (error) {
+        console.error("Error updating event participation:", error);
+      }
+    }
+  };
+
+  // UPDATE THE AUTO-SCROLL USEEFFECT (around line 190)
+  useEffect(() => {
+    if (events.length > 0) {
+      // ADD THIS CONDITION
+      const interval = setInterval(() => {
+        nextEvent();
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [events]); // ADD events TO DEPENDENCY ARRAY
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -317,6 +423,123 @@ const CampusLayout = () => {
 
       {/* Main Content */}
       <main className="flex-grow container mx-auto px-4 py-8">
+        {/* Event Carousel Section */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+          <div className="border-b border-gray-200 px-6 py-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Upcoming Events
+            </h2>
+          </div>
+          <div className="relative px-6 py-4">
+            <div className="w-full overflow-hidden">
+              <div className="relative transition-all duration-500 ease-in-out">
+                {/* Event Card */}
+                {events.length > 0 ? (
+                  <div
+                    className={`w-full h-64 rounded-xl ${events[activeEventIndex].color_gradient} p-6 transition-all duration-500 ease-in-out`}
+                  >
+                    <div className="h-full flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center space-x-2 text-white/80 mb-2">
+                          <CalendarIcon className="h-4 w-4" />
+                          <span>
+                            {new Date(
+                              events[activeEventIndex].date
+                            ).toLocaleDateString()}
+                          </span>
+                          <span>•</span>
+                          <Clock className="h-4 w-4" />
+                          <span>{events[activeEventIndex].time}</span>
+                        </div>
+                        <h3 className="text-3xl font-bold text-white mb-3">
+                          {events[activeEventIndex].title}
+                        </h3>
+                        <p className="text-white/90 mb-4 max-w-3xl">
+                          {events[activeEventIndex].description}
+                        </p>
+                        <div className="flex items-center text-white/80 mb-4">
+                          <MapPin className="h-4 w-4 mr-2" />
+                          <span>{events[activeEventIndex].location}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-2">
+                          {events.map((_, index) => (
+                            <button
+                              key={index}
+                              onClick={() => setActiveEventIndex(index)}
+                              className={`w-3 h-3 rounded-full ${
+                                index === activeEventIndex
+                                  ? "bg-white"
+                                  : "bg-white/40"
+                              }`}
+                            />
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() =>
+                            toggleParticipation(events[activeEventIndex].id)
+                          }
+                          className={`flex items-center space-x-2 rounded-full px-4 py-2 transition-all duration-300 ${
+                            participatingEvents.includes(
+                              events[activeEventIndex].id
+                            )
+                              ? "bg-white text-gray-800 shadow-lg"
+                              : "bg-white/20 text-white hover:bg-white/30"
+                          }`}
+                        >
+                          <span>
+                            {participatingEvents.includes(
+                              events[activeEventIndex].id
+                            )
+                              ? "Participating"
+                              : "Participate"}
+                          </span>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4" />
+                            <span className="ml-1">
+                              {events[activeEventIndex].interested_count}
+                            </span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // SHOW THIS WHEN NO EVENTS ARE AVAILABLE
+                  <div className="w-full h-64 rounded-xl bg-gradient-to-r from-gray-400 to-gray-600 p-6 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <h3 className="text-2xl font-bold mb-2">
+                        No Events Available
+                      </h3>
+                      <p className="text-white/80">
+                        Check back later for upcoming events
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <button
+              onClick={prevEvent}
+              className="absolute left-8 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              onClick={nextEvent}
+              className="absolute right-8 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+
         {/* Campus View Section */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
           <div className="border-b border-gray-200 px-6 py-4">
@@ -516,7 +739,7 @@ const CampusLayout = () => {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={(day) => day && setDate(day)}
                 className="rounded-md border"
               />
             </div>
